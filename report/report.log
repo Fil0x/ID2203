@@ -1,9 +1,7 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9) (preloaded format=pdflatex 2015.8.20)  8 FEB 2016 19:28
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9) (preloaded format=pdflatex 2015.8.20)  10 FEB 2016 21:42
 entering extended mode
 **report.tex
-
-("C:\Users\Fadi\Desktop\KTH\Y1P3\Distributed Systems, Advanced Course\Project\R
-eport\report.tex"
+(C:\Users\Fadi\Documents\GitHub\ID2203\report\report.tex
 LaTeX2e <2011/06/27>
 Babel <v3.8m> and hyphenation patterns for english, afrikaans, ancientgreek, ar
 abic, armenian, assamese, basque, bengali, bokmal, bulgarian, catalan, coptic, 
@@ -306,8 +304,7 @@ Package: subcaption 2013/02/03 v1.1-62 Sub-captions (AR)
 \c@subfigure=\count89
 \c@subtable=\count90
 )
-("C:\Users\Fadi\Desktop\KTH\Y1P3\Distributed Systems, Advanced Course\Project\R
-eport\report.aux")
+(C:\Users\Fadi\Documents\GitHub\ID2203\report\report.aux)
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 15.
 LaTeX Font Info:    ... okay on input line 15.
 LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 15.
@@ -343,32 +340,57 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <8> on input line 17.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 17.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <10.95> on input line 21.
+ <./figures/network-overview.png, id=1, 354.57469pt x 308.65312pt>
+File: ./figures/network-overview.png Graphic file (type png)
 
-Overfull \hbox (48.8613pt too wide) in paragraph at lines 21--22
-\OT1/cmr/m/n/10.95 http://www.slideshare.net/WayneJonesJnr/chapter-16-distribut
-ed-system-structures-
+<use ./figures/network-overview.png>
+Package pdftex.def Info: ./figures/network-overview.png used on input line 23.
+(pdftex.def)             Requested size: 319.11427pt x 277.78523pt.
+ [1
+
+{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map} <C:/Users/Fadi/Documents/G
+itHub/ID2203/report/figures/network-overview.png>]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 55.
+ ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\base\omscmr.fd"
+File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 55.
+
+Overfull \hbox (24.9538pt too wide) in paragraph at lines 55--57
+[]\OT1/cmr/m/n/10.95 http://www.slideshare.net/WayneJonesJnr/chapter-16-distrib
+uted-system-
  []
 
-[1
 
-{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}]
-("C:\Users\Fadi\Desktop\KTH\Y1P3\Distributed Systems, Advanced Course\Project\R
-eport\report.aux") ) 
+Overfull \hbox (30.39844pt too wide) in paragraph at lines 57--58
+[]\OT1/cmr/m/n/10.95 http://blog.fourthbit.com/2015/04/12/building-a-distribute
+d-fault-tolerant-
+ []
+
+[2] (C:\Users\Fadi\Documents\GitHub\ID2203\report\report.aux) ) 
 Here is how much of TeX's memory you used:
- 2497 strings out of 493921
- 37713 string characters out of 3144879
- 93998 words of memory out of 3000000
- 5807 multiletter control sequences out of 15000+200000
- 7887 words of font info for 28 fonts, out of 3000000 for 9000
+ 2528 strings out of 493921
+ 38025 string characters out of 3144879
+ 95998 words of memory out of 3000000
+ 5830 multiletter control sequences out of 15000+200000
+ 8979 words of font info for 32 fonts, out of 3000000 for 9000
  841 hyphenation exceptions out of 8191
- 36i,6n,38p,234b,201s stack positions out of 5000i,500n,10000p,200000b,50000s
-<C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfo
-nts/cm/cmbx12.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfont
-s/cm/cmr10.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/c
-m/cmr12.pfb>
-Output written on report.pdf (1 page, 45067 bytes).
+ 36i,6n,38p,301b,201s stack positions out of 5000i,500n,10000p,200000b,50000s
+<C:/Program File
+s (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Program Files 
+(x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program Files (x
+86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Program Files (x86
+)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program Files (x86)/M
+iKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Program Files (x86)/MiKT
+eX 2.9/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Program Files (x86)/MiKTeX 2
+.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files (x86)/MiKTeX 2.9
+/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
+Output written on report.pdf (2 pages, 117335 bytes).
 PDF statistics:
- 18 PDF objects out of 1000 (max. 8388607)
+ 44 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 6 words of extra memory for PDF output out of 10000 (max. 10000000)
 
