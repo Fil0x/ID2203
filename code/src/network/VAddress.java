@@ -1,3 +1,5 @@
+package network;
+
 import se.sics.kompics.network.virtual.Address;
 
 import java.net.InetAddress;

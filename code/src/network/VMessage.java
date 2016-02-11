@@ -1,3 +1,5 @@
+package network;
+
 import se.sics.kompics.KompicsEvent;
 import se.sics.kompics.PatternExtractor;
 import se.sics.kompics.network.Msg;

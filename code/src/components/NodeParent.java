@@ -1,8 +1,9 @@
+package components;
+
 import com.google.common.primitives.Ints;
-import com.typesafe.config.ConfigFactory;
+import network.VAddress;
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
-import se.sics.kompics.Init;
 import se.sics.kompics.config.Config;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.netty.NettyInit;

@@ -1,4 +1,10 @@
+package components;
+
 import com.google.common.primitives.Ints;
+import events.Join;
+import events.View;
+import network.VAddress;
+import network.VMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.sics.kompics.*;
@@ -65,14 +71,15 @@ public class Node extends ComponentDefinition {
         @Override
         public void handle(View content, VMessage context) {
             int srcId = Ints.fromByteArray(context.getSource().getId());
+            //  save the view locally
+            view = content.view;
             // Get these group IDs
             StringBuilder sb = new StringBuilder();
-            for(VAddress v: content.view) {
+            for(VAddress v: view) {
                 sb.append(Ints.fromByteArray(v.getId()));
                 sb.append(" ");
             }
             LOG.info(String.format("[%d]: Got VIEW message from ID: [%d](%s)", id, srcId, sb.toString().trim()));
-
         }
     };
 

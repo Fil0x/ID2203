@@ -1,6 +1,11 @@
+package serializer;
+
 import com.google.common.base.Optional;
 import com.google.common.primitives.Ints;
+import events.Join;
+import events.View;
 import io.netty.buffer.ByteBuf;
+import network.VAddress;
 import se.sics.kompics.network.netty.serialization.Serializer;
 
 import java.net.InetAddress;

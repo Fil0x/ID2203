@@ -1,5 +1,10 @@
+package serializer;
+
 import com.google.common.base.Optional;
 import io.netty.buffer.ByteBuf;
+import network.VAddress;
+import network.VHeader;
+import network.VMessage;
 import se.sics.kompics.KompicsEvent;
 import se.sics.kompics.network.Transport;
 import se.sics.kompics.network.netty.serialization.Serializer;

@@ -1,3 +1,5 @@
+package network;
+
 import se.sics.kompics.network.Transport;
 import se.sics.kompics.network.virtual.Header;
 

@@ -1,3 +1,6 @@
+package events;
+
+import network.VAddress;
 import se.sics.kompics.KompicsEvent;
 
 import java.util.ArrayList;
