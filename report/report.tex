@@ -6,12 +6,8 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{amsmath}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
 \usepackage{pifont}
 
-\algdef{SE}[EVENT]{Event}{EndEvent}[1]{\textbf{upon event}\ #1\ \algorithmicdo}{\algorithmicend\ \textbf{event}}%
-\algtext*{EndEvent}
 
 \title{\textbf{Distributed Systems, Advanced Course \\ Preliminary Report}}
 \author{KTH Royal Institute of Technology \\ 
@@ -55,6 +51,8 @@ network {
 }
 \end{verbatim}
 
+\noindent Before getting into the message exchanges, it has to be noted that we use TCP to implement perfect point to point link in an asynchronous environment. This provides us with acknowledgments and message retransmission in the case of omissions. But when the destination is unresponsive TCP breaks the connection thinking it has crashed thus bringing synchronous assumptions into play and correct node suspicion.\\
+
 \noindent Having done that its time to start up the nodes and create our group with the \textit{Node} components. The first node is always the initial group \textit{leader}. After him, all the subsequent nodes are \textit{slaves} and they have to send a \textit{JOIN} message to the leader to get accounted for and retrieve an updated view of the group contained in a \textit{VIEW} message. Every node is tagged with a random number whose use will be explained in the next section. \\
 
 \noindent A possible output of the initialization phase can be the following:
@@ -95,14 +93,25 @@ newkey = murmur3\_128(oldkey) \mod{maxvalue}
 \section{What's the value of XXX}
 
 \noindent This structure wouldn't be useful if we can't send queries of \textit{GET}, \textit{PUT} and \textit{CAS}. Since this is the preliminary report we only have the \textit{GET(key)} requests for preloaded values. \\
-\noindent The \textit{GET} request can be received by any node of the group. When this happens the node sends the request to the group leader, unless the leader is itself. As soon as the request arrives it gets broadcasted to the group and the ones interested in the packet respond to the client directly, aka owner node or a replica.
+The \textit{GET} request can be received by any node of the group. When this happens the node sends the request to the group leader, unless the leader is itself. As soon as the request arrives it gets broadcasted to the group and the ones interested in the packet respond to the client directly, aka owner node or a replica.
 
 \section{Copy here, copy there, copies everywhere!}
 
-\noindent For this system we chose to use forward replication with $\delta = 1$, as illustrated below: 
+\noindent For this system we chose to use forward replication with $\delta := 1$, as illustrated below: 
 
 {\centering\includegraphics[scale = 0.8]{./figures/replication.png}\par}
 
+
+\section{Tests, tests}
+
+\noindent In our simulation we are testing(for now) the following scenarios:
+\begin{itemize}
+	\item Graph creation
+	\item Data replication
+	\item GET(key)
+	\item Non existing \textit{key}
+	\item Failed node detection(EPFD)
+\end{itemize}
 
 \section{Who failed?}
 
@@ -140,7 +149,7 @@ newkey = murmur3\_128(oldkey) \mod{maxvalue}
 	
 	\bibitem{groupy} Johan Montelius. \textit{https://people.kth.se/\~johanmon/courses/id2201/seminars/groupy.pdf}.
 
-	\bibitem{ftolkv} Álvaro Castro-Castilla. \textit{	http://blog.fourthbit.com/2015/04/12/building-a-distributed-fault-tolerant-key-value-store}
+	\bibitem{ftolkv} Álvaro Castro-Castilla. \textit{http://blog.fourthbit.com/2015/04/12/building-a-distributed-fault-tolerant-key-value-store}
 \end{thebibliography}
 
 \end{document}
