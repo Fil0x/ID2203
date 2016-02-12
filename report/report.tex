@@ -13,7 +13,7 @@
 \algdef{SE}[EVENT]{Event}{EndEvent}[1]{\textbf{upon event}\ #1\ \algorithmicdo}{\algorithmicend\ \textbf{event}}%
 \algtext*{EndEvent}
 
-\title{\textbf{Distributed Artificial Intelligence and Intelligent Agents Homework 1}}
+\title{\textbf{Distributed Systems, Advanced Course \\ Preliminary Report}}
 \author{KTH Royal Institute of Technology \\ 
 		School of Information and Communication Technology \\
 		Student:Fanti Machmount Al Samisti (fmas@kth.se) \\
@@ -29,11 +29,9 @@
 
 \section{Introduction}
 
-\noindent The goal of this project is to implement a distributed key-value store with many freedoms given at hand like the structure, replication algorithm and factor and much more. We chose a full graph network e.g. if \textbf{n = 4} then $K_4$(in graph theory terms). 
+\noindent The goal of this project is to implement a distributed key-value store in \textit{Kompics}\cite{kompics} with many freedoms given at hand like the structure, replication algorithm and factor and much more. We chose a full graph network e.g. if \textbf{n = 4} then $K_4$(in graph theory terms).
 
 {\centering\includegraphics[scale = 0.9]{./figures/network-overview.png}\par}
-
-\section{Enter the matrix}
 
 \noindent Before getting deeper into the architecture of our system, an overview picture is much more effective than any description:
 
@@ -41,7 +39,7 @@
 
 \noindent Having the above in mind, we can move on to the insides of our system. A \textit{Kompics} virtual network is comprised of \textit{vnodes} that share the same physical traits, namely IP address and port number, and they are distinguished by an \textit{id}. \\
 
-\subsection{Initialization}
+\section{Fellowship of the nodes}
 
 \noindent When then system is \textit{bootstraping}, the single \textit{NodeParent} component reads the following configuration file: 
 
@@ -69,9 +67,18 @@ INFO  {Node} [1]: Got VIEW message from ID: [0](0 1 2)
 INFO  {Node} [2]: Got VIEW message from ID: [0](0 1 2)
 \end{verbatim}
 
-\subsection{Key assignment} \label{keys}
+\noindent If we move on to the formal side, the group should have the following properties\cite{chordy}\cite{groupy}:
+\begin{itemize}
+	\item FIFO and total message ordering
+	\item Agreement: If a correct node delivers then all correct nodes deliver
+	\item Linearizability
+\end{itemize}
 
-\noindent We pretty much followed \textit{Chord's} key assignment algorithm and applied it to our group. With a few nodes the key assignment will not be fair but as the size increases the distribution will be normalized.
+\clearpage
+
+\section{Key assignment} \label{keys}
+
+\noindent We pretty much followed \textit{Chord's} key assignment\cite{chordy} algorithm and applied it to our group. With a few nodes the key assignment will not be fair but as the size increases the distribution will be normalized.
 
 {\centering\includegraphics[scale = 0.7]{./figures/key-assignment.png}\par}
 
@@ -85,24 +92,27 @@ range = (id_{previous}, id_{current}]
 newkey = murmur3\_128(oldkey) \mod{maxvalue}
 \end{gather*}
 
-\subsection{What's the value of XXX}
+\section{What's the value of XXX}
 
 \noindent This structure wouldn't be useful if we can't send queries of \textit{GET}, \textit{PUT} and \textit{CAS}. Since this is the preliminary report we only have the \textit{GET(key)} requests for preloaded values. \\
 \noindent The \textit{GET} request can be received by any node of the group. When this happens the node sends the request to the group leader, unless the leader is itself. As soon as the request arrives it gets broadcasted to the group and the ones interested in the packet respond to the client directly, aka owner node or a replica.
 
-\subsection{Copy here, copy there, copies everywhere!}
+\section{Copy here, copy there, copies everywhere!}
 
 \noindent For this system we chose to use forward replication with $\delta = 1$, as illustrated below: 
 
 {\centering\includegraphics[scale = 0.8]{./figures/replication.png}\par}
 
-\subsection{Who failed?}
 
-\noindent The group is monitored by an \textit{eventually perfect failure detector}. The algorithm is shown below:
+\section{Who failed?}
 
-{\centering\includegraphics[scale = 0.95]{./figures/epfd-algorithm.png}\par}
+\noindent The group is monitored by an \textit{eventually perfect failure detector} and it will function correctly as long as there's a leader and a replica to serve a node's data lives on some node. The algorithm is shown in the next page.
 
-\subsection{But...we should be flexible}
+{\centering\includegraphics[scale = 1]{./figures/epfd-algorithm.png}\par}
+
+\clearpage
+
+\section{But...we should be flexible}
 
 \noindent maybe reconfiguration insight, replication handlinig, properties(linerizable) \\
 
@@ -115,13 +125,22 @@ newkey = murmur3\_128(oldkey) \mod{maxvalue}
 
 \noindent Based on the same logic when a \textbf{node leaves or crashes} the network should rebalance and hand keys to the proper owners in this new configuration:
 
-{\centering\includegraphics[scale = 0.87]{./figures/nodecrash.png}\par}
+\hspace*{-1in} {\centering\includegraphics[scale = 0.9]{./figures/nodecrash.png}\par}
 
-\section{References}
-\begin{itemize}
-	\item http://www.slideshare.net/WayneJonesJnr/chapter-16-distributed-system-structures-1314596
-	\item 
-	http://blog.fourthbit.com/2015/04/12/building-a-distributed-fault-tolerant-key-value-store
-\end{itemize}
+\clearpage
+
+\begin{thebibliography}{9}
+	\bibitem{kompics} SICS Swedish ICT and KTH Royal Institute of Technology.  http://kompics.sics.se/. 2015
+	
+	\bibitem{lastyear} Previous year assignments. \textit{https://canvas.instructure.com/courses/990374}. 2015
+	
+	\bibitem{latexcompanion}  Abraham Silberschatz, Peter B. Galvin, Greg Gagne. \textit{Operating System Concepts 8th Edition}. Chapter 16 
+	
+	\bibitem{chordy} Johan Montelius. \textit{https://people.kth.se/\~johanmon/courses/id2201/seminars/chordy.pdf}.
+	
+	\bibitem{groupy} Johan Montelius. \textit{https://people.kth.se/\~johanmon/courses/id2201/seminars/groupy.pdf}.
+
+	\bibitem{ftolkv} Álvaro Castro-Castilla. \textit{	http://blog.fourthbit.com/2015/04/12/building-a-distributed-fault-tolerant-key-value-store}
+\end{thebibliography}
 
 \end{document}

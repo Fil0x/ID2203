@@ -1,9 +1,7 @@
 \contentsline {section}{\numberline {1}Introduction}{2}
-\contentsline {section}{\numberline {2}Enter the matrix}{2}
-\contentsline {subsection}{\numberline {2.1}Initialization}{3}
-\contentsline {subsection}{\numberline {2.2}Key assignment}{3}
-\contentsline {subsection}{\numberline {2.3}What's the value of XXX}{4}
-\contentsline {subsection}{\numberline {2.4}Copy here, copy there, copies everywhere!}{4}
-\contentsline {subsection}{\numberline {2.5}Who failed?}{5}
-\contentsline {subsection}{\numberline {2.6}But...we should be flexible}{6}
-\contentsline {section}{\numberline {3}References}{7}
+\contentsline {section}{\numberline {2}Fellowship of the nodes}{3}
+\contentsline {section}{\numberline {3}Key assignment}{4}
+\contentsline {section}{\numberline {4}What's the value of XXX}{4}
+\contentsline {section}{\numberline {5}Copy here, copy there, copies everywhere!}{5}
+\contentsline {section}{\numberline {6}Who failed?}{5}
+\contentsline {section}{\numberline {7}But...we should be flexible}{7}
