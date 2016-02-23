@@ -1,8 +1,7 @@
 package components;
 
 import com.google.common.primitives.Ints;
-import events.Join;
-import events.View;
+import events.*;
 import network.VAddress;
 import network.VMessage;
 import org.slf4j.Logger;
@@ -11,8 +10,7 @@ import se.sics.kompics.*;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.Transport;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Node extends ComponentDefinition {
 
@@ -22,6 +20,8 @@ public class Node extends ComponentDefinition {
     private VAddress leader;
     private boolean isLeader;
     private List<VAddress> view = new ArrayList<>();
+    // Key data
+    private Map<Integer, Integer> keyData = new HashMap<>(); // It holds its data and that of the replica
 
     Positive<Network> net = requires(Network.class);
 
@@ -38,7 +38,7 @@ public class Node extends ComponentDefinition {
     Handler<Start> startHandler = new Handler<Start>() {
         @Override
         public void handle(Start event) {
-            LOG.info(String.format("[%d]: Got START message", id));
+            // LOG.info(String.format("[%d]: Got START message", id));
             if(!isLeader) {
                 // Send a JOIN message to the leader
                 trigger(new VMessage(self, leader, Transport.TCP, new Join()), net);
@@ -54,10 +54,19 @@ public class Node extends ComponentDefinition {
         @Override
         public void handle(Join content, VMessage context) {
             int srcId = Ints.fromByteArray(context.getSource().getId());
-            LOG.info(String.format("[%d]: Got JOIN message from ID: [%d]", id, srcId));
+            // LOG.info(String.format("[%d]: Got JOIN message from ID: [%d]", id, srcId));
 
             // We have a new node in the group
             view.add(context.getSource());
+            // Sort the view based on the node id
+            Collections.sort(view, new Comparator<VAddress>() {
+                @Override
+                public int compare(VAddress o1, VAddress o2) {
+                    int o1Id = Ints.fromByteArray(o1.getId());
+                    int o2Id = Ints.fromByteArray(o2.getId());
+                    return o1Id - o2Id;
+                }
+            });
             // we must update the view and broadcast it, skip yourself
             for (VAddress v: view) {
                 if(!v.equals(self)) {
@@ -83,10 +92,90 @@ public class Node extends ComponentDefinition {
         }
     };
 
+    ClassMatchedHandler<Get, VMessage> getHandler = new ClassMatchedHandler<Get, VMessage>() {
+        @Override
+        public void handle(Get get, VMessage vMessage) {
+            // I received a GET request, now I have to find the owner and his replica
+            VAddress owner = null, replica = null;
+            for (VAddress v : view) {
+                int id = Ints.fromByteArray(v.getId());
+                if(get.getKey() <= id) {
+                    owner = v;
+                    replica = getNext(id);
+
+                    break;
+                }
+            }
+
+            // Am I the owner, the replica or none of them?
+            if(self == owner) { // The request is addressed to me
+                // Send the request to the requester and the replica
+                // First send it to the replica, instead of our source address we spoof it with the clients'
+                trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP,get), net);
+                // and then back to the requester
+                trigger(new VMessage(self, vMessage.getSource(), Transport.TCP, new Reply(get.getKey(), keyData.get(get.getKey()))), net);
+            }
+            else if(self == replica) { // I am the replica
+                // Same deal as the previous case
+                // First to the owner
+                trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP,get), net);
+                // then to the requester
+                trigger(new VMessage(self, vMessage.getSource(), Transport.TCP, new Reply(get.getKey(), keyData.get(get.getKey()))), net);
+            }
+            else { // Send the messages to the responsible nodes
+                trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP,get), net);
+                trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP,get), net);
+            }
+        }
+    };
+
+    ClassMatchedHandler<Put, VMessage> putHandler = new ClassMatchedHandler<Put, VMessage>() {
+        @Override
+        public void handle(Put put, VMessage vMessage) {
+
+        }
+    };
+
+    private VAddress getPrevious(int refNode) {
+        // We are searching for the maximum id of the view without our own and its less than our own
+        //              max(V \ ourID && v in V \ ourID: v < ourID)
+        VAddress prevNode = null;
+        for (int i = 0; i < view.size(); i++) {
+            int nodeId = Ints.fromByteArray(view.get(i).getId());
+            if(nodeId == refNode) { // Found myself, now I have to find the previous
+                if(i == 0)
+                    prevNode = view.get(view.size()-1);
+                else
+                    prevNode = view.get(i - 1);
+            }
+        }
+
+        return prevNode;
+    }
+
+    private VAddress getNext(int refNode) {
+        // We are searching for the maximum id of the view without our own and its less than our own
+        //              max(V \ ourID && v in V \ ourID: v > ourID) && cycle
+        VAddress nextNode = null;
+        for (int i = 0; i < view.size(); i++) {
+            int nodeId = Ints.fromByteArray(view.get(i).getId());
+            if(nodeId == refNode) { // Found myself, now I have to find the next
+                if(i == (view.size() - 1))
+                    nextNode = view.get(0);
+                else
+                    nextNode = view.get(i + 1);
+            }
+        }
+
+        return nextNode;
+    }
+
     {
         subscribe(startHandler, control);
         subscribe(joinHandler, net);
         subscribe(viewHandler, net);
+        subscribe(getHandler, net);
+        subscribe(putHandler, net);
     }
 
     public static class Init extends se.sics.kompics.Init<Node> {

@@ -2,8 +2,7 @@ package serializer;
 
 import com.google.common.base.Optional;
 import com.google.common.primitives.Ints;
-import events.Join;
-import events.View;
+import events.*;
 import io.netty.buffer.ByteBuf;
 import network.VAddress;
 import se.sics.kompics.network.netty.serialization.Serializer;
@@ -17,6 +16,9 @@ public class PayloadSerializer implements Serializer {
 
     private static final byte VIEW = 1;
     private static final byte JOIN = 2;
+    private static final byte GET = 3;
+    private static final byte PUT = 4;
+    private static final byte REPLY = 5;
 
     @Override
     public int identifier() {
@@ -39,6 +41,24 @@ public class PayloadSerializer implements Serializer {
             buf.writeByte(JOIN);
             // Total: 1
         }
+        else if(o instanceof Get) {
+            Get g = (Get) o;
+            buf.writeByte(GET);
+            buf.writeInt(g.key);
+            // Total: 1 + 4
+        }
+        else if(o instanceof Put) {
+            Put p = (Put) o;
+            buf.writeByte(PUT);
+            // Total: 1
+        }
+        else if(o instanceof Reply) {
+            Reply r = (Reply) o;
+            buf.writeByte(REPLY);
+            buf.writeInt(r.getKey());
+            buf.writeInt(r.getValue());
+            // Total = 1 + 4(key) + 4(value)
+        }
     }
 
     @Override
@@ -59,6 +79,21 @@ public class PayloadSerializer implements Serializer {
                 return new View(groupView);
             case JOIN:
                 return new Join();
+            case GET:
+                byte[] rawKey = new byte[4];
+                buf.readBytes(rawKey);
+
+                return new Get(Ints.fromByteArray(rawKey));
+            case PUT:
+                return new Put();
+            case REPLY:
+                byte[] rKey = new byte[4];
+                byte[] rvalue = new byte[4];
+                buf.readBytes(rKey);
+                buf.readBytes(rvalue);
+
+                return new Reply(Ints.fromByteArray(rKey),
+                                 Ints.fromByteArray(rvalue));
         }
         return null;
     }
