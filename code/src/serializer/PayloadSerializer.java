@@ -44,13 +44,15 @@ public class PayloadSerializer implements Serializer {
         else if(o instanceof Get) {
             Get g = (Get) o;
             buf.writeByte(GET);
-            buf.writeInt(g.key);
+            buf.writeInt(g.getKey());
             // Total: 1 + 4
         }
         else if(o instanceof Put) {
             Put p = (Put) o;
             buf.writeByte(PUT);
-            // Total: 1
+            buf.writeInt(p.getKey());
+            buf.writeInt(p.getValue());
+            // Total: 1 + 4(key) + 4(value)
         }
         else if(o instanceof Reply) {
             Reply r = (Reply) o;
@@ -85,7 +87,13 @@ public class PayloadSerializer implements Serializer {
 
                 return new Get(Ints.fromByteArray(rawKey));
             case PUT:
-                return new Put();
+                byte[] pKey = new byte[4];
+                byte[] pValue = new byte[4];
+                buf.readBytes(pKey);
+                buf.readBytes(pValue);
+
+                return new Put(Ints.fromByteArray(pKey),
+                               Ints.fromByteArray(pValue));
             case REPLY:
                 byte[] rKey = new byte[4];
                 byte[] rvalue = new byte[4];

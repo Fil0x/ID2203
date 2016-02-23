@@ -1,6 +1,7 @@
 package components;
 
 import com.google.common.primitives.Ints;
+import com.sun.webkit.Utilities;
 import events.*;
 import network.VAddress;
 import network.VMessage;
@@ -15,6 +16,8 @@ import java.util.*;
 public class Node extends ComponentDefinition {
 
     private static final Logger LOG = LoggerFactory.getLogger(Node.class);
+    private final int UPPERBOUND;
+
     private int id;
     // View data
     private VAddress leader;
@@ -30,6 +33,7 @@ public class Node extends ComponentDefinition {
     public Node(Init init) {
         this.self = config().getValue("node", VAddress.class);
         this.id = Ints.fromByteArray(this.self.getId());
+        UPPERBOUND = config().getValue("network.grid.upperbound", Integer.class); // used for the key hashing
 
         this.leader = init.leader;
         this.isLeader = init.isLeader;
@@ -132,7 +136,44 @@ public class Node extends ComponentDefinition {
     ClassMatchedHandler<Put, VMessage> putHandler = new ClassMatchedHandler<Put, VMessage>() {
         @Override
         public void handle(Put put, VMessage vMessage) {
+            // Hash it to find the proper owner and replica
+            int hashedKey = general.Utilities.hash(put.getKey(), UPPERBOUND);
+            // I received a PUT request, now I have to find the owner and his replica
+            VAddress owner = null, replica = null;
+            for (VAddress v : view) {
+                int id = Ints.fromByteArray(v.getId());
+                if(hashedKey <= id) {
+                    owner = v;
+                    replica = getNext(id);
 
+                    break;
+                }
+            }
+
+            // Am I the owner, the replica or none of them?
+            if(self == owner) { // The request is addressed to me
+                // Store it
+                keyData.put(hashedKey, put.getValue());
+                // Send the request to the replica
+                // First send it to the replica, instead of our source address we spoof it with the clients'
+                trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP, put), net);
+
+                // and then back to the requester. No need for reply?
+                // trigger(new VMessage(self, vMessage.getSource(), Transport.TCP, new Reply(put.getKey(), keyData.get(put.getKey()))), net);
+            }
+            else if(self == replica) { // I am the replica
+                // Store it
+                keyData.put(hashedKey, put.getValue());
+                // Same deal as the previous case
+                // First to the owner
+                trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP,put), net);
+                // then to the requester. No need for reply?
+                // trigger(new VMessage(self, vMessage.getSource(), Transport.TCP, new Reply(put.getKey(), keyData.get(put.getKey()))), net);
+            }
+            else { // Send the messages to the responsible nodes
+                trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP, put), net);
+                trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP, put), net);
+            }
         }
     };
 

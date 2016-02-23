@@ -17,7 +17,7 @@ import java.util.Random;
 
 public class NodeParent extends ComponentDefinition {
 
-    private final int UPPERBOUND = 100;//Integer.MAX_VALUE;
+    private final int UPPERBOUND;//Integer.MAX_VALUE;
 
     private long nextLong(long n) {
         // error checking and 2^x checking removed for simplicity.
@@ -35,6 +35,7 @@ public class NodeParent extends ComponentDefinition {
 
     public NodeParent() {
         VAddress baseSelf = config().getValue("network.node", VAddress.class);
+        UPPERBOUND = config().getValue("network.grid.upperbound", Integer.class);
 
         Component network = create(NettyNetwork.class, new NettyInit(baseSelf));
         VirtualNetworkChannel vnc = VirtualNetworkChannel.connect(network.getPositive(Network.class), proxy);
