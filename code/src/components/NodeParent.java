@@ -10,6 +10,7 @@ import se.sics.kompics.network.Network;
 import se.sics.kompics.network.netty.NettyInit;
 import se.sics.kompics.network.netty.NettyNetwork;
 import se.sics.kompics.network.virtual.VirtualNetworkChannel;
+import se.sics.kompics.timer.Timer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,6 +19,7 @@ import java.util.Random;
 
 public class NodeParent extends ComponentDefinition {
 
+	Positive<Timer> timer = requires(Timer.class);
 	Positive<Network> network = requires(Network.class);
 	
     private final int UPPERBOUND;//Integer.MAX_VALUE;
@@ -39,10 +41,10 @@ public class NodeParent extends ComponentDefinition {
     public NodeParent() {
         VAddress baseSelf = config().getValue("network.node", VAddress.class);
         UPPERBOUND = config().getValue("network.grid.upperbound", Integer.class);
-
+        
         VirtualNetworkChannel vnc = VirtualNetworkChannel.connect(network, proxy);
         int num = config().getValue("network.grid.num", Integer.class);
-
+        
         List<Component> group = new ArrayList<>();
         // Bootstrap the system by first creating the leader and then the rest of the nodes
         VAddress leader = null;
@@ -55,6 +57,7 @@ public class NodeParent extends ComponentDefinition {
         Collections.sort(ids);
 
         for (int i = 0; i < num; i++) {
+        	
             byte[] id = Ints.toByteArray(ids.get(i));
             Config.Builder cbuild = config().modify(id());
             VAddress nodeAddress = baseSelf.withVirtual(id);

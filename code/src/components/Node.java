@@ -91,6 +91,7 @@ public class Node extends ComponentDefinition {
                 sb.append(Ints.fromByteArray(v.getId()));
                 sb.append(" ");
             }
+            
             LOG.info(String.format("[%d]: Got VIEW message from ID: [%d](%s)", id, srcId, sb.toString().trim()));
         }
     };
