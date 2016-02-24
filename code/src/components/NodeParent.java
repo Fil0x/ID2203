@@ -4,6 +4,7 @@ import com.google.common.primitives.Ints;
 import network.VAddress;
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
+import se.sics.kompics.Positive;
 import se.sics.kompics.config.Config;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.netty.NettyInit;
@@ -17,6 +18,8 @@ import java.util.Random;
 
 public class NodeParent extends ComponentDefinition {
 
+	Positive<Network> network = requires(Network.class);
+	
     private final int UPPERBOUND;//Integer.MAX_VALUE;
 
     private long nextLong(long n) {
@@ -37,8 +40,7 @@ public class NodeParent extends ComponentDefinition {
         VAddress baseSelf = config().getValue("network.node", VAddress.class);
         UPPERBOUND = config().getValue("network.grid.upperbound", Integer.class);
 
-        Component network = create(NettyNetwork.class, new NettyInit(baseSelf));
-        VirtualNetworkChannel vnc = VirtualNetworkChannel.connect(network.getPositive(Network.class), proxy);
+        VirtualNetworkChannel vnc = VirtualNetworkChannel.connect(network, proxy);
         int num = config().getValue("network.grid.num", Integer.class);
 
         List<Component> group = new ArrayList<>();
