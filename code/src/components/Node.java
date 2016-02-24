@@ -1,7 +1,6 @@
 package components;
 
 import com.google.common.primitives.Ints;
-import com.sun.webkit.Utilities;
 import events.*;
 import network.VAddress;
 import network.VMessage;
@@ -92,6 +91,7 @@ public class Node extends ComponentDefinition {
                 sb.append(Ints.fromByteArray(v.getId()));
                 sb.append(" ");
             }
+            
             LOG.info(String.format("[%d]: Got VIEW message from ID: [%d](%s)", id, srcId, sb.toString().trim()));
         }
     };

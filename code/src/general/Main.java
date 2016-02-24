@@ -1,7 +1,7 @@
 package general;
 
 import components.Node;
-import components.NodeParent;
+import components.NodeParentHost;
 import network.VAddress;
 import network.VAddressConverter;
 import network.VHeader;
@@ -28,6 +28,6 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Kompics.createAndStart(NodeParent.class);
+        Kompics.createAndStart(NodeParentHost.class);
     }
 }
