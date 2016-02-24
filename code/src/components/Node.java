@@ -36,6 +36,8 @@ public class Node extends ComponentDefinition {
 
         this.leader = init.leader;
         this.isLeader = init.isLeader;
+        
+        LOG.info("Created Node: [id: " + id + ", Leader:" + isLeader + "]");
     }
 
     Handler<Start> startHandler = new Handler<Start>() {
@@ -44,6 +46,7 @@ public class Node extends ComponentDefinition {
             // LOG.info(String.format("[%d]: Got START message", id));
             if(!isLeader) {
                 // Send a JOIN message to the leader
+            	LOG.info("Node " + id + " triggers Join Event on leader");
                 trigger(new VMessage(self, leader, Transport.TCP, new Join()), net);
             }
             else {
@@ -58,7 +61,8 @@ public class Node extends ComponentDefinition {
         public void handle(Join content, VMessage context) {
             int srcId = Ints.fromByteArray(context.getSource().getId());
             // LOG.info(String.format("[%d]: Got JOIN message from ID: [%d]", id, srcId));
-
+            
+            
             // We have a new node in the group
             view.add(context.getSource());
             // Sort the view based on the node id
@@ -70,10 +74,11 @@ public class Node extends ComponentDefinition {
                     return o1Id - o2Id;
                 }
             });
+            
             // we must update the view and broadcast it, skip yourself
             for (VAddress v: view) {
-                if(!v.equals(self)) {
-                    trigger(new VMessage(self, v, Transport.TCP, new View(view)), net);
+            	if(!v.equals(self)) {
+                	trigger(new VMessage(self, v, Transport.TCP, new View(new ArrayList<VAddress>(view))), net);
                 }
             }
         }
