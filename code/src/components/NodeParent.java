@@ -1,24 +1,29 @@
 package components;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.primitives.Ints;
+
 import network.VAddress;
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Positive;
 import se.sics.kompics.config.Config;
 import se.sics.kompics.network.Network;
-import se.sics.kompics.network.netty.NettyInit;
-import se.sics.kompics.network.netty.NettyNetwork;
 import se.sics.kompics.network.virtual.VirtualNetworkChannel;
 import se.sics.kompics.timer.Timer;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import util.RandomNumGenerator;
 
 public class NodeParent extends ComponentDefinition {
 
+	private static final Logger log = LoggerFactory.getLogger(NodeParent.class);
+	
 	Positive<Timer> timer = requires(Timer.class);
 	Positive<Network> network = requires(Network.class);
 	
@@ -35,10 +40,12 @@ public class NodeParent extends ComponentDefinition {
     }
 
     private int nextInt(int max) {
-        return (new Random()).nextInt(max);
+    	return RandomNumGenerator.getInstance().next(max);
     }
 
     public NodeParent() {
+    	log.info("Initiate NodeParent...");
+    	
         VAddress baseSelf = config().getValue("network.node", VAddress.class);
         UPPERBOUND = config().getValue("network.grid.upperbound", Integer.class);
         
@@ -65,11 +72,13 @@ public class NodeParent extends ComponentDefinition {
             Component node = null;
             if(i == 0) {
                 // The leader
+            	log.info("Create Leader Node: " + ids.get(i));
                 node = create(Node.class, new Node.Init(null, true), cbuild.finalise());
                 leader = nodeAddress;
             }
             else {
                 // The slaves
+            	log.info("Create Slave Node: " + ids.get(i));
                 node = create(Node.class, new Node.Init(leader, false), cbuild.finalise());
             }
 
