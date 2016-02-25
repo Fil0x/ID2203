@@ -45,14 +45,16 @@ public class PayloadSerializer implements Serializer {
             Get g = (Get) o;
             buf.writeByte(GET);
             buf.writeInt(g.getKey());
-            // Total: 1 + 4
+            buf.writeBoolean(g.toForward());
+            // Total: 1 + 4 + boolean_size
         }
         else if(o instanceof Put) {
             Put p = (Put) o;
             buf.writeByte(PUT);
             buf.writeInt(p.getKey());
             buf.writeInt(p.getValue());
-            // Total: 1 + 4(key) + 4(value)
+            buf.writeBoolean(p.toForward());
+            // Total: 1 + 4(key) + 4(value) + boolean_size
         }
         else if(o instanceof Reply) {
             Reply r = (Reply) o;
@@ -85,15 +87,18 @@ public class PayloadSerializer implements Serializer {
                 byte[] rawKey = new byte[4];
                 buf.readBytes(rawKey);
 
-                return new Get(Ints.fromByteArray(rawKey));
+                Get g = new Get(Ints.fromByteArray(rawKey));
+                g.setToForward(buf.readBoolean());
+                return g;
             case PUT:
                 byte[] pKey = new byte[4];
                 byte[] pValue = new byte[4];
                 buf.readBytes(pKey);
                 buf.readBytes(pValue);
 
-                return new Put(Ints.fromByteArray(pKey),
-                               Ints.fromByteArray(pValue));
+                Put p = new Put(Ints.fromByteArray(pKey), Ints.fromByteArray(pValue));
+                p.setToForward(buf.readBoolean());
+                return p;
             case REPLY:
                 byte[] rKey = new byte[4];
                 byte[] rvalue = new byte[4];

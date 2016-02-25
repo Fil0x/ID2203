@@ -120,18 +120,27 @@ public class Node extends ComponentDefinition {
             if(self == owner) { // The request is addressed to me
                 // Send the request to the requester and the replica
                 // First send it to the replica, instead of our source address we spoof it with the clients'
-                trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP,get), net);
+                if(get.toForward()) {
+                    get.setToForward(false);
+                    trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP, get), net);
+                }
                 // and then back to the requester
                 trigger(new VMessage(self, vMessage.getSource(), Transport.TCP, new Reply(get.getKey(), keyData.get(get.getKey()))), net);
             }
             else if(self == replica) { // I am the replica
                 // Same deal as the previous case
                 // First to the owner
-                trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP,get), net);
+                if(get.toForward()) {
+                    get.setToForward(false);
+                    trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP, get), net);
+                }
                 // then to the requester
                 trigger(new VMessage(self, vMessage.getSource(), Transport.TCP, new Reply(get.getKey(), keyData.get(get.getKey()))), net);
             }
             else { // Send the messages to the responsible nodes
+                // Change the get message's forward to false, we don't want the message to
+                // run in the network ad infinitum
+                get.setToForward(false);
                 trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP,get), net);
                 trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP,get), net);
             }
@@ -161,7 +170,10 @@ public class Node extends ComponentDefinition {
                 keyData.put(hashedKey, put.getValue());
                 // Send the request to the replica
                 // First send it to the replica, instead of our source address we spoof it with the clients'
-                trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP, put), net);
+                if(put.toForward()) {
+                    put.setToForward(false);
+                    trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP, put), net);
+                }
 
                 // and then back to the requester. No need for reply?
                 // trigger(new VMessage(self, vMessage.getSource(), Transport.TCP, new Reply(put.getKey(), keyData.get(put.getKey()))), net);
@@ -171,11 +183,16 @@ public class Node extends ComponentDefinition {
                 keyData.put(hashedKey, put.getValue());
                 // Same deal as the previous case
                 // First to the owner
-                trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP,put), net);
+                if(put.toForward()) {
+                    put.setToForward(false);
+                    trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP, put), net);
+                }
                 // then to the requester. No need for reply?
                 // trigger(new VMessage(self, vMessage.getSource(), Transport.TCP, new Reply(put.getKey(), keyData.get(put.getKey()))), net);
             }
             else { // Send the messages to the responsible nodes
+                // Same deal as GET
+                put.setToForward(false);
                 trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP, put), net);
                 trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP, put), net);
             }
