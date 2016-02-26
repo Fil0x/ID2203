@@ -15,7 +15,7 @@ import java.util.*;
 public class Node extends ComponentDefinition {
 
     private static final Logger LOG = LoggerFactory.getLogger(Node.class);
-    private final int UPPERBOUND;
+    private final int UPPERBOUND = Integer.MAX_VALUE;
 
     private int id;
     // View data
@@ -32,7 +32,6 @@ public class Node extends ComponentDefinition {
     public Node(Init init) {
         this.self = config().getValue("node", VAddress.class);
         this.id = Ints.fromByteArray(this.self.getId());
-        UPPERBOUND = config().getValue("network.grid.upperbound", Integer.class); // used for the key hashing
 
         this.leader = init.leader;
         this.isLeader = init.isLeader;
@@ -104,134 +103,16 @@ public class Node extends ComponentDefinition {
     ClassMatchedHandler<Get, VMessage> getHandler = new ClassMatchedHandler<Get, VMessage>() {
         @Override
         public void handle(Get get, VMessage vMessage) {
-            // I received a GET request, now I have to find the owner and his replica
-            VAddress owner = null, replica = null;
-            for (VAddress v : view) {
-                int id = Ints.fromByteArray(v.getId());
-                if(get.getKey() <= id) {
-                    owner = v;
-                    replica = getNext(id);
 
-                    break;
-                }
-            }
-
-            // Am I the owner, the replica or none of them?
-            if(self == owner) { // The request is addressed to me
-                // Send the request to the requester and the replica
-                // First send it to the replica, instead of our source address we spoof it with the clients'
-                if(get.toForward()) {
-                    get.setToForward(false);
-                    trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP, get), net);
-                }
-                // and then back to the requester
-                trigger(new VMessage(self, vMessage.getSource(), Transport.TCP, new Reply(get.getKey(), keyData.get(get.getKey()))), net);
-            }
-            else if(self == replica) { // I am the replica
-                // Same deal as the previous case
-                // First to the owner
-                if(get.toForward()) {
-                    get.setToForward(false);
-                    trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP, get), net);
-                }
-                // then to the requester
-                trigger(new VMessage(self, vMessage.getSource(), Transport.TCP, new Reply(get.getKey(), keyData.get(get.getKey()))), net);
-            }
-            else { // Send the messages to the responsible nodes
-                // Change the get message's forward to false, we don't want the message to
-                // run in the network ad infinitum
-                get.setToForward(false);
-                trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP,get), net);
-                trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP,get), net);
-            }
         }
     };
 
     ClassMatchedHandler<Put, VMessage> putHandler = new ClassMatchedHandler<Put, VMessage>() {
         @Override
         public void handle(Put put, VMessage vMessage) {
-            // Hash it to find the proper owner and replica
-            int hashedKey = general.Utilities.hash(put.getKey(), UPPERBOUND);
-            // I received a PUT request, now I have to find the owner and his replica
-            VAddress owner = null, replica = null;
-            for (VAddress v : view) {
-                int id = Ints.fromByteArray(v.getId());
-                if(hashedKey <= id) {
-                    owner = v;
-                    replica = getNext(id);
 
-                    break;
-                }
-            }
-
-            // Am I the owner, the replica or none of them?
-            if(self == owner) { // The request is addressed to me
-                // Store it
-                keyData.put(hashedKey, put.getValue());
-                // Send the request to the replica
-                // First send it to the replica, instead of our source address we spoof it with the clients'
-                if(put.toForward()) {
-                    put.setToForward(false);
-                    trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP, put), net);
-                }
-
-                // and then back to the requester. No need for reply?
-                // trigger(new VMessage(self, vMessage.getSource(), Transport.TCP, new Reply(put.getKey(), keyData.get(put.getKey()))), net);
-            }
-            else if(self == replica) { // I am the replica
-                // Store it
-                keyData.put(hashedKey, put.getValue());
-                // Same deal as the previous case
-                // First to the owner
-                if(put.toForward()) {
-                    put.setToForward(false);
-                    trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP, put), net);
-                }
-                // then to the requester. No need for reply?
-                // trigger(new VMessage(self, vMessage.getSource(), Transport.TCP, new Reply(put.getKey(), keyData.get(put.getKey()))), net);
-            }
-            else { // Send the messages to the responsible nodes
-                // Same deal as GET
-                put.setToForward(false);
-                trigger(new VMessage(vMessage.getSource(), owner, Transport.TCP, put), net);
-                trigger(new VMessage(vMessage.getSource(), replica, Transport.TCP, put), net);
-            }
         }
     };
-
-    private VAddress getPrevious(int refNode) {
-        // We are searching for the maximum id of the view without our own and its less than our own
-        //              max(V \ ourID && v in V \ ourID: v < ourID)
-        VAddress prevNode = null;
-        for (int i = 0; i < view.size(); i++) {
-            int nodeId = Ints.fromByteArray(view.get(i).getId());
-            if(nodeId == refNode) { // Found myself, now I have to find the previous
-                if(i == 0)
-                    prevNode = view.get(view.size()-1);
-                else
-                    prevNode = view.get(i - 1);
-            }
-        }
-
-        return prevNode;
-    }
-
-    private VAddress getNext(int refNode) {
-        // We are searching for the maximum id of the view without our own and its less than our own
-        //              max(V \ ourID && v in V \ ourID: v > ourID) && cycle
-        VAddress nextNode = null;
-        for (int i = 0; i < view.size(); i++) {
-            int nodeId = Ints.fromByteArray(view.get(i).getId());
-            if(nodeId == refNode) { // Found myself, now I have to find the next
-                if(i == (view.size() - 1))
-                    nextNode = view.get(0);
-                else
-                    nextNode = view.get(i + 1);
-            }
-        }
-
-        return nextNode;
-    }
 
     {
         subscribe(startHandler, control);

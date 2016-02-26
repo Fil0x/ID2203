@@ -27,17 +27,7 @@ public class NodeParent extends ComponentDefinition {
 	Positive<Timer> timer = requires(Timer.class);
 	Positive<Network> network = requires(Network.class);
 	
-    private final int UPPERBOUND;//Integer.MAX_VALUE;
-
-    private long nextLong(long n) {
-        // error checking and 2^x checking removed for simplicity.
-        long bits, val;
-        do {
-            bits = ((new Random()).nextLong() << 1) >>> 1;
-            val = bits % n;
-        } while (bits-val+(n-1) < 0L);
-        return val;
-    }
+    private final int UPPERBOUND = Integer.MAX_VALUE;
 
     private int nextInt(int max) {
     	return RandomNumGenerator.getInstance().next(max);
@@ -47,8 +37,7 @@ public class NodeParent extends ComponentDefinition {
     	log.info("Initiate NodeParent...");
     	
         VAddress baseSelf = config().getValue("network.node", VAddress.class);
-        UPPERBOUND = config().getValue("network.grid.upperbound", Integer.class);
-        
+
         VirtualNetworkChannel vnc = VirtualNetworkChannel.connect(network, proxy);
         int num = config().getValue("network.grid.num", Integer.class);
         
@@ -56,29 +45,22 @@ public class NodeParent extends ComponentDefinition {
         // Bootstrap the system by first creating the leader and then the rest of the nodes
         VAddress leader = null;
 
-        // Generate #num random ids and sort them
-        List<Integer> ids = new ArrayList<>();
-        for (int i = 0; i < num; i++) {
-            ids.add(this.nextInt(UPPERBOUND));
-        }
-        Collections.sort(ids);
-
         for (int i = 0; i < num; i++) {
         	
-            byte[] id = Ints.toByteArray(ids.get(i));
+            byte[] id = Ints.toByteArray(i);
             Config.Builder cbuild = config().modify(id());
             VAddress nodeAddress = baseSelf.withVirtual(id);
             cbuild.setValue("node", nodeAddress);
             Component node = null;
             if(i == 0) {
                 // The leader
-            	log.info("Create Leader Node: " + ids.get(i));
+            	log.info("Create Leader Node: " + i);
                 node = create(Node.class, new Node.Init(null, true), cbuild.finalise());
                 leader = nodeAddress;
             }
             else {
                 // The slaves
-            	log.info("Create Slave Node: " + ids.get(i));
+            	log.info("Create Slave Node: " + i);
                 node = create(Node.class, new Node.Init(leader, false), cbuild.finalise());
             }
 
