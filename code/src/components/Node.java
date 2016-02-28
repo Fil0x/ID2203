@@ -6,9 +6,8 @@ import network.VAddress;
 import network.VMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ports.BestEffortBroadcast;
 import se.sics.kompics.*;
-import se.sics.kompics.network.Network;
-import se.sics.kompics.network.Transport;
 
 import java.util.*;
 
@@ -21,11 +20,11 @@ public class Node extends ComponentDefinition {
     // View data
     private VAddress leader;
     private boolean isLeader;
-    private List<VAddress> view = new ArrayList<>();
+    private List<VAddress> pi;
     // Key data
     private Map<Integer, Integer> keyData = new HashMap<>(); // It holds its data and that of the replica
 
-    Positive<Network> net = requires(Network.class);
+    private Positive<BestEffortBroadcast> beb = requires(BestEffortBroadcast.class);
 
     private final VAddress self;
 
@@ -35,6 +34,10 @@ public class Node extends ComponentDefinition {
 
         this.leader = init.leader;
         this.isLeader = init.isLeader;
+        this.pi = init.pi;
+
+        subscribe(startHandler, control);
+        subscribe(bebDataHandler, beb);
         
         LOG.info("Created Node: [id: " + id + ", Leader:" + isLeader + "]");
     }
@@ -42,61 +45,24 @@ public class Node extends ComponentDefinition {
     Handler<Start> startHandler = new Handler<Start>() {
         @Override
         public void handle(Start event) {
-            // LOG.info(String.format("[%d]: Got START message", id));
-            if(!isLeader) {
-                // Send a JOIN message to the leader
-            	LOG.info("Node " + id + " triggers Join Event on leader");
-                trigger(new VMessage(self, leader, Transport.TCP, new Join()), net);
-            }
-            else {
-                // The leader has to add himself to the view
-                view.add(self);
-            }
+            if(!isLeader)
+                LOG.info("Node " + id + " initialized(leader=" + Ints.fromByteArray(leader.getId()) + ")");
+            else
+                LOG.info("Node " + id + " is the leader");
         }
     };
 
     ClassMatchedHandler<Join, VMessage> joinHandler = new ClassMatchedHandler<Join, VMessage>() {
         @Override
         public void handle(Join content, VMessage context) {
-            int srcId = Ints.fromByteArray(context.getSource().getId());
-            // LOG.info(String.format("[%d]: Got JOIN message from ID: [%d]", id, srcId));
-            
-            
-            // We have a new node in the group
-            view.add(context.getSource());
-            // Sort the view based on the node id
-            Collections.sort(view, new Comparator<VAddress>() {
-                @Override
-                public int compare(VAddress o1, VAddress o2) {
-                    int o1Id = Ints.fromByteArray(o1.getId());
-                    int o2Id = Ints.fromByteArray(o2.getId());
-                    return o1Id - o2Id;
-                }
-            });
-            
-            // we must update the view and broadcast it, skip yourself
-            for (VAddress v: view) {
-            	if(!v.equals(self)) {
-                	trigger(new VMessage(self, v, Transport.TCP, new View(new ArrayList<VAddress>(view))), net);
-                }
-            }
+
         }
     };
 
     ClassMatchedHandler<View, VMessage> viewHandler = new ClassMatchedHandler<View, VMessage>() {
         @Override
         public void handle(View content, VMessage context) {
-            int srcId = Ints.fromByteArray(context.getSource().getId());
-            //  save the view locally
-            view = content.view;
-            // Get these group IDs
-            StringBuilder sb = new StringBuilder();
-            for(VAddress v: view) {
-                sb.append(Ints.fromByteArray(v.getId()));
-                sb.append(" ");
-            }
-            
-            LOG.info(String.format("[%d]: Got VIEW message from ID: [%d](%s)", id, srcId, sb.toString().trim()));
+
         }
     };
 
@@ -114,20 +80,22 @@ public class Node extends ComponentDefinition {
         }
     };
 
-    {
-        subscribe(startHandler, control);
-        subscribe(joinHandler, net);
-        subscribe(viewHandler, net);
-        subscribe(getHandler, net);
-        subscribe(putHandler, net);
-    }
+    Handler<BebMessage> bebDataHandler = new Handler<BebMessage>() {
+        @Override
+        public void handle(BebMessage msg) {
+            LOG.info(id + ": Received message from " + Ints.fromByteArray(msg.getSource().getId()));
+        }
+    };
 
     public static class Init extends se.sics.kompics.Init<Node> {
         public final VAddress leader;
         public boolean isLeader;
-        public Init(VAddress leader, boolean isLeader) {
+        public List<VAddress> pi;
+
+        public Init(VAddress leader, boolean isLeader, List<VAddress> allNodes) {
             this.leader = leader;
             this.isLeader = isLeader;
+            this.pi = allNodes;
         }
     }
 }

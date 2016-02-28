@@ -1,9 +1,6 @@
 package components;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,18 +8,23 @@ import org.slf4j.LoggerFactory;
 import com.google.common.primitives.Ints;
 
 import network.VAddress;
-import se.sics.kompics.Component;
-import se.sics.kompics.ComponentDefinition;
-import se.sics.kompics.Positive;
+import ports.BebBroadcast;
+import ports.BebDeliver;
+import ports.BestEffortBroadcast;
+import se.sics.kompics.*;
 import se.sics.kompics.config.Config;
 import se.sics.kompics.network.Network;
+import se.sics.kompics.network.netty.NettyInit;
+import se.sics.kompics.network.netty.NettyNetwork;
 import se.sics.kompics.network.virtual.VirtualNetworkChannel;
 import se.sics.kompics.timer.Timer;
+import staticdata.Grid;
+import sun.nio.ch.Net;
 import util.RandomNumGenerator;
 
 public class NodeParent extends ComponentDefinition {
 
-	private static final Logger log = LoggerFactory.getLogger(NodeParent.class);
+	private static final Logger LOG = LoggerFactory.getLogger(NodeParent.class);
 	
 	Positive<Timer> timer = requires(Timer.class);
 	Positive<Network> network = requires(Network.class);
@@ -34,38 +36,37 @@ public class NodeParent extends ComponentDefinition {
     }
 
     public NodeParent() {
-    	log.info("Initiate NodeParent...");
+    	LOG.info("Initiate NodeParent...");
     	
         VAddress baseSelf = config().getValue("network.node", VAddress.class);
-
         VirtualNetworkChannel vnc = VirtualNetworkChannel.connect(network, proxy);
-        int num = config().getValue("network.grid.num", Integer.class);
-        
-        List<Component> group = new ArrayList<>();
+
+        List<VAddress> pi = Grid.getAllNodes(baseSelf);
+
+        Component beb = create(BasicBroadcast.class, new BasicBroadcast.Init(baseSelf.withVirtual(Ints.toByteArray(1)), pi));
+        vnc.addConnection(Ints.toByteArray(1), beb.getNegative(Network.class));
+
         // Bootstrap the system by first creating the leader and then the rest of the nodes
         VAddress leader = null;
-
-        for (int i = 0; i < num; i++) {
-        	
-            byte[] id = Ints.toByteArray(i);
+        for(VAddress nodeAddr: pi) {
             Config.Builder cbuild = config().modify(id());
-            VAddress nodeAddress = baseSelf.withVirtual(id);
-            cbuild.setValue("node", nodeAddress);
-            Component node = null;
-            if(i == 0) {
-                // The leader
-            	log.info("Create Leader Node: " + i);
-                node = create(Node.class, new Node.Init(null, true), cbuild.finalise());
-                leader = nodeAddress;
+            cbuild.setValue("node", nodeAddr);
+
+            LOG.info("Creating node with id: " + Ints.fromByteArray(nodeAddr.getId()));
+            Component newNode = null;
+            if(Ints.fromByteArray(nodeAddr.getId()) == 100) {
+                newNode = create(Node.class, new Node.Init(null, true, pi), cbuild.finalise());
+                leader = nodeAddr;
             }
             else {
-                // The slaves
-            	log.info("Create Slave Node: " + i);
-                node = create(Node.class, new Node.Init(leader, false), cbuild.finalise());
+                newNode = create(Node.class, new Node.Init(leader, false, pi), cbuild.finalise());
             }
-
-            vnc.addConnection(id, node.getNegative(Network.class));
-            group.add(node);
+            connect(newNode.getNegative(BestEffortBroadcast.class), beb.getPositive(BestEffortBroadcast.class), Channel.TWO_WAY);
         }
+    }
+
+    @Override
+    public Fault.ResolveAction handleFault(Fault fault) {
+        return super.handleFault(fault);
     }
 }
