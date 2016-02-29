@@ -1,4 +1,4 @@
-package components;
+package beb.events;
 
 
 import network.TAddress;

@@ -35,7 +35,6 @@ public class NodeStructureScenario {
 				@Override
 				public Init getComponentInit() {
                     return new Node.Init(selfAdr, allNodes, true, null);
-                    // return new NodeParent.Init(selfAdr, allNodes, true, null);
 				}
 
 				@Override
@@ -66,13 +65,11 @@ public class NodeStructureScenario {
                 @Override
                 public Class<? extends ComponentDefinition> getComponentDefinition() {
                     return Node.class;
-                    // return NodeParent.class;
                 }
 
                 @Override
                 public Init getComponentInit() {
                     return new Node.Init(selfAdr, allNodes, false, allNodes.get(0));
-                    //return new NodeParent.Init(selfAdr, allNodes, false, allNodes.get(0));
                 }
             };
         }
@@ -95,8 +92,8 @@ public class NodeStructureScenario {
 					}
 				};
 
-				spawnLeader.start();
-				slaveNodes.startAfterTerminationOf(1000, spawnLeader);
+				slaveNodes.start();
+				spawnLeader.startAfterTerminationOf(1000, slaveNodes);
 				terminateAfterTerminationOf(10000, spawnLeader);
 			}
 
