@@ -1,4 +1,4 @@
-package ports;
+package beb.events;
 
 
 import se.sics.kompics.KompicsEvent;

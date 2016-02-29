@@ -3,7 +3,7 @@ package general;
 import components.Node;
 import components.NodeParent;
 import components.Spawner;
-import events.Join;
+//import events.Join;
 import network.TAddress;
 import network.THeader;
 import network.TMessage;
@@ -28,7 +28,7 @@ public class Main {
         Serializers.register(TMessage.class, "netS");
         Serializers.register(Node.class, "ppS");
 
-        Serializers.register(Join.class, "ppS");
+//        Serializers.register(Join.class, "ppS");
         // Conversions
         // Conversions.register(new VAddressConverter());
     }

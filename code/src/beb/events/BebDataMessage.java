@@ -3,7 +3,6 @@ package beb.events;
 
 import network.TAddress;
 import network.TMessage;
-import ports.BebDeliver;
 import se.sics.kompics.KompicsEvent;
 import se.sics.kompics.network.Transport;
 

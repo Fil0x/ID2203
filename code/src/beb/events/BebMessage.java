@@ -1,8 +1,7 @@
-package beb;
+package beb.events;
 
 
 import network.TAddress;
-import ports.BebDeliver;
 
 public class BebMessage extends BebDeliver {
 

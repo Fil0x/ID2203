@@ -25,12 +25,14 @@ public class PayloadSerializer implements Serializer {
 
     @Override
     public void toBinary(Object o, ByteBuf buf) {
-        if(o instanceof Join) {
-            Join j = (Join) o;
-            buf.writeByte(JOIN);
-            // Total: 1
-        }
-        else if(o instanceof Get) {
+//        if(o instanceof Join) {
+//            Join j = (Join) o;
+//            buf.writeByte(JOIN);
+//            // Total: 1
+//        }
+//        else
+        	
+    	if(o instanceof Get) {
             Get g = (Get) o;
             buf.writeByte(GET);
             buf.writeInt(g.getKey());
@@ -58,8 +60,8 @@ public class PayloadSerializer implements Serializer {
     public Object fromBinary(ByteBuf buf, Optional<Object> hint) {
         byte type = buf.readByte(); // 1 byte
         switch (type) {
-            case JOIN:
-                return new Join();
+//            case JOIN:
+//                return new Join();
             case GET:
                 byte[] rawKey = new byte[4];
                 buf.readBytes(rawKey);

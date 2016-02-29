@@ -2,13 +2,14 @@ package components;
 
 import com.google.common.primitives.Ints;
 
+import beb.BestEffortBroadcast;
 import beb.events.BebDataMessage;
 import events.*;
 import network.TAddress;
 import network.TMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ports.BestEffortBroadcast;
+
 import se.sics.kompics.*;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.Transport;
@@ -31,7 +32,7 @@ public class Node extends ComponentDefinition {
     // Key data
     private Map<Integer, Integer> keyData = new HashMap<>(); // It holds its data and that of the replica
 
-    // private Positive<BestEffortBroadcast> beb = requires(BestEffortBroadcast.class);
+//    private Positive<BestEffortBroadcast> beb = requires(BestEffortBroadcast.class);
     private Positive<Network> net = requires(Network.class);
     private Positive<Timer> timer = requires(Timer.class);
 
