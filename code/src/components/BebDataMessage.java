@@ -1,27 +1,17 @@
 package components;
 
 
-import network.VAddress;
+import network.TAddress;
+import network.TMessage;
 import ports.BebDeliver;
 import se.sics.kompics.KompicsEvent;
+import se.sics.kompics.network.Transport;
 
 import java.io.Serializable;
 
-public class BebDataMessage implements Serializable, KompicsEvent {
-    private static final long serialVersionUID = 9183185042302932366L;
+public class BebDataMessage extends TMessage {
 
-    private VAddress source;
-    private BebDeliver data;
-
-    protected BebDataMessage(VAddress source, BebDeliver data) {
-        this.data = data;
-    }
-
-    public BebDeliver getData() {
-        return data;
-    }
-
-    public VAddress getSource() {
-        return source;
+    public BebDataMessage(TAddress src, TAddress dst, Transport protocol) {
+        super(src, dst, protocol);
     }
 }

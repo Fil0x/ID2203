@@ -1,21 +1,21 @@
 package ports;
 
-import network.VAddress;
-import se.sics.kompics.Event;
+import network.TAddress;
+import se.sics.kompics.KompicsEvent;
 
 import java.io.Serializable;
 
-public class BebDeliver extends Event implements Serializable {
+public class BebDeliver implements Serializable, KompicsEvent {
 
     private static final long serialVersionUID = 4088333329204792579L;
 
-    private VAddress source;
+    private TAddress source;
 
-    public BebDeliver(VAddress source) {
+    public BebDeliver(TAddress source) {
         this.source = source;
     }
 
-    public VAddress getSource() {
+    public TAddress getSource() {
         return source;
     }
 }

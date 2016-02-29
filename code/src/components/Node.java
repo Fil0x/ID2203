@@ -2,12 +2,16 @@ package components;
 
 import com.google.common.primitives.Ints;
 import events.*;
-import network.VAddress;
-import network.VMessage;
+import network.TAddress;
+import network.TMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ports.BestEffortBroadcast;
 import se.sics.kompics.*;
+import se.sics.kompics.network.Network;
+import se.sics.kompics.network.Transport;
+import se.sics.kompics.timer.*;
+import se.sics.kompics.timer.Timer;
 
 import java.util.*;
 
@@ -16,86 +20,63 @@ public class Node extends ComponentDefinition {
     private static final Logger LOG = LoggerFactory.getLogger(Node.class);
     private final int UPPERBOUND = Integer.MAX_VALUE;
 
-    private int id;
     // View data
-    private VAddress leader;
+    private TAddress leader;
+    private TAddress self;
     private boolean isLeader;
-    private List<VAddress> pi;
+    private List<TAddress> allNodes;
+
     // Key data
     private Map<Integer, Integer> keyData = new HashMap<>(); // It holds its data and that of the replica
 
-    private Positive<BestEffortBroadcast> beb = requires(BestEffortBroadcast.class);
-
-    private final VAddress self;
+    // private Positive<BestEffortBroadcast> beb = requires(BestEffortBroadcast.class);
+    private Positive<Network> net = requires(Network.class);
+    private Positive<Timer> timer = requires(Timer.class);
 
     public Node(Init init) {
-        this.self = config().getValue("node", VAddress.class);
-        this.id = Ints.fromByteArray(this.self.getId());
-
+        this.self = init.self;
         this.leader = init.leader;
         this.isLeader = init.isLeader;
-        this.pi = init.pi;
+        this.allNodes = init.allNodes;
 
-        subscribe(startHandler, control);
-        subscribe(bebDataHandler, beb);
-        
-        LOG.info("Created Node: [id: " + id + ", Leader:" + isLeader + "]");
+
+        // subscribe(bebDataHandler, beb);
     }
 
     Handler<Start> startHandler = new Handler<Start>() {
         @Override
         public void handle(Start event) {
             if(!isLeader)
-                LOG.info("Node " + id + " initialized(leader=" + Ints.fromByteArray(leader.getId()) + ")");
-            else
-                LOG.info("Node " + id + " is the leader");
+                LOG.info("Slave  :" + self.toString());
+            else {
+                LOG.info("Leader : " + self.toString());
+                trigger(new BebDataMessage(self, allNodes.get(5), Transport.TCP), net);
+            }
         }
     };
 
-    ClassMatchedHandler<Join, VMessage> joinHandler = new ClassMatchedHandler<Join, VMessage>() {
+    Handler<BebDataMessage> bebDataHandler = new Handler<BebDataMessage>() {
         @Override
-        public void handle(Join content, VMessage context) {
-
+        public void handle(BebDataMessage msg) {
+            LOG.info("HERE");
         }
     };
 
-    ClassMatchedHandler<View, VMessage> viewHandler = new ClassMatchedHandler<View, VMessage>() {
-        @Override
-        public void handle(View content, VMessage context) {
-
-        }
-    };
-
-    ClassMatchedHandler<Get, VMessage> getHandler = new ClassMatchedHandler<Get, VMessage>() {
-        @Override
-        public void handle(Get get, VMessage vMessage) {
-
-        }
-    };
-
-    ClassMatchedHandler<Put, VMessage> putHandler = new ClassMatchedHandler<Put, VMessage>() {
-        @Override
-        public void handle(Put put, VMessage vMessage) {
-
-        }
-    };
-
-    Handler<BebMessage> bebDataHandler = new Handler<BebMessage>() {
-        @Override
-        public void handle(BebMessage msg) {
-            LOG.info(id + ": Received message from " + Ints.fromByteArray(msg.getSource().getId()));
-        }
-    };
+    {
+        subscribe(startHandler, control);
+        subscribe(bebDataHandler, net);
+    }
 
     public static class Init extends se.sics.kompics.Init<Node> {
-        public final VAddress leader;
+        public final TAddress self, leader;
         public boolean isLeader;
-        public List<VAddress> pi;
+        public List<TAddress> allNodes;
 
-        public Init(VAddress leader, boolean isLeader, List<VAddress> allNodes) {
-            this.leader = leader;
+        public Init(TAddress self, List<TAddress> allNodes, boolean isLeader, TAddress leader) {
+            this.self = self;
+            this.allNodes = allNodes;
             this.isLeader = isLeader;
-            this.pi = allNodes;
+            this.leader = leader;
         }
     }
 }

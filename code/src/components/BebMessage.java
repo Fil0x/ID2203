@@ -1,11 +1,8 @@
 package components;
 
 
-import network.VAddress;
+import network.TAddress;
 import ports.BebDeliver;
-import se.sics.kompics.Event;
-
-import java.io.Serializable;
 
 public class BebMessage extends BebDeliver {
 
@@ -13,7 +10,7 @@ public class BebMessage extends BebDeliver {
 
     private static final long serialVersionUID = 5491596109178800519L;
 
-    public BebMessage(VAddress source, String message) {
+    public BebMessage(TAddress source, String message) {
         super(source);
         this.message = message;
     }

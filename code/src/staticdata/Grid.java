@@ -1,25 +1,37 @@
 package staticdata;
 
 
-import com.google.common.primitives.Ints;
-import network.VAddress;
-
+import network.TAddress;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Grid {
 
-    public static List<VAddress> pi = null;
+    public static List<TAddress> pi = null;
 
-    public static List<VAddress> getAllNodes(VAddress base) {
-        // Create the static 9 nodes
-        List<VAddress> pi = new ArrayList<>();
+    public static List<TAddress> getAllNodes() {
 
-        for (int i = 100; i < 110; i++) {
-            pi.add(base.withVirtual(Ints.toByteArray(i)));
+        if(pi != null)
+            return pi;
+
+        try {
+            // Create the static 6 nodes
+            List<TAddress> nodes = new ArrayList<>();
+            InetAddress baseIP = InetAddress.getByName("127.0.0.1");
+            int basePort = 20000;
+
+            for (int i = 0; i < 6; i++) {
+                nodes.add(new TAddress(baseIP, basePort + i));
+            }
+
+            Grid.pi = nodes;
+            return nodes;
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
         }
 
-        Grid.pi = pi;
-        return pi;
+        return null;
     }
 }

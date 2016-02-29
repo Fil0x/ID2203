@@ -1,82 +1,41 @@
 package simulation;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
+import components.Node;
 import components.NodeParent;
-import network.VAddress;
+import network.TAddress;
+import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Init;
 import se.sics.kompics.network.Address;
 import se.sics.kompics.simulator.SimulationScenario;
+import se.sics.kompics.simulator.adaptor.Operation;
 import se.sics.kompics.simulator.adaptor.Operation1;
-import se.sics.kompics.simulator.adaptor.Operation2;
+import se.sics.kompics.simulator.adaptor.distributions.ConstantDistribution;
 import se.sics.kompics.simulator.adaptor.distributions.extra.BasicIntSequentialDistribution;
 import se.sics.kompics.simulator.events.system.StartNodeEvent;
+import staticdata.Grid;
 
 public class NodeStructureScenario {
 
-	static Operation1 startLeaderViewOp = new Operation1<StartNodeEvent, Integer>() {
+	static Operation1 startLeader = new Operation1<StartNodeEvent, Integer>() {
 
 		@Override
 		public StartNodeEvent generate(final Integer self) {
 			return new StartNodeEvent() {
 
-				VAddress selfAdr;
+                List<TAddress> allNodes = Grid.getAllNodes();
+                TAddress selfAdr = allNodes.get(0);
 
-				{
-					try {
-						selfAdr = new VAddress(InetAddress.getByName("192.193.0." + self), 10000);
-					} catch (UnknownHostException ex) {
-						throw new RuntimeException(ex);
-					}
-				}
-				
 				@Override
 				public Class getComponentDefinition() {
-					return LeaderViewParent.class;
+					return Node.class;
 				}
 
 				@Override
 				public Init getComponentInit() {
-					return Init.NONE;
-				}
-
-				@Override
-				public Address getNodeAddress() {
-					return selfAdr;
-				}
-				
-			};
-		}
-		
-	};
-	
-	static Operation2 startParentNodeOp = new Operation2<StartNodeEvent, Integer, Integer>() {
-
-		@Override
-		public StartNodeEvent generate(final Integer self, final Integer nodeView) {
-			return new StartNodeEvent() {
-				VAddress selfAdr;
-				VAddress nodeViewAdr;
-				{
-					try {
-						selfAdr = new VAddress(InetAddress.getByName("192.193.0." + self), 10000);
-						nodeViewAdr = new VAddress(InetAddress.getByName("192.193.0." + nodeView), 10000);
-					} catch (UnknownHostException ex) {
-						throw new RuntimeException(ex);
-					}
-				}
-
-				@Override
-				public Class getComponentDefinition() {
-					return NodeParent.class;
-				}
-
-				@Override
-				public Init getComponentInit() {
-					return Init.NONE;
+                    return new Node.Init(selfAdr, allNodes, true, null);
+                    // return new NodeParent.Init(selfAdr, allNodes, true, null);
 				}
 
 				@Override
@@ -84,38 +43,61 @@ public class NodeStructureScenario {
 					return selfAdr;
 				}
 
-				@Override
-				public Map<String, Object> initConfigUpdate() {
-					HashMap<String, Object> config = new HashMap<>();
-					config.put("network.node", selfAdr);
-					return config;
-				}
-
 			};
 		}
 
 	};
+
+
+	static Operation1 startSlave = new Operation1<StartNodeEvent, Integer>() {
+
+        @Override
+        public StartNodeEvent generate(final Integer n) {
+            return new StartNodeEvent() {
+
+                List<TAddress> allNodes = Grid.getAllNodes();
+                TAddress selfAdr = allNodes.get(n);
+
+                @Override
+                public Address getNodeAddress() {
+                    return selfAdr;
+                }
+
+                @Override
+                public Class<? extends ComponentDefinition> getComponentDefinition() {
+                    return Node.class;
+                    // return NodeParent.class;
+                }
+
+                @Override
+                public Init getComponentInit() {
+                    return new Node.Init(selfAdr, allNodes, false, allNodes.get(0));
+                    //return new NodeParent.Init(selfAdr, allNodes, false, allNodes.get(0));
+                }
+            };
+        }
+    };
 
 	public static SimulationScenario simpleNodeStructure() {
 		SimulationScenario scenario = new SimulationScenario() {
 			{
-				SimulationScenario.StochasticProcess nodeView = new SimulationScenario.StochasticProcess() {
+                SimulationScenario.StochasticProcess spawnLeader = new SimulationScenario.StochasticProcess() {
                     {
                         eventInterArrivalTime(constant(1000));
-                        raise(5, startLeaderViewOp, new BasicIntSequentialDistribution(1));
+                        raise(1, startLeader, new BasicIntSequentialDistribution(1));
                     }
                 };
 
-				SimulationScenario.StochasticProcess parentNode = new SimulationScenario.StochasticProcess() {
+				final SimulationScenario.StochasticProcess slaveNodes = new SimulationScenario.StochasticProcess() {
 					{
 						eventInterArrivalTime(constant(1000));
-						raise(1, startParentNodeOp, new BasicIntSequentialDistribution(1), new BasicIntSequentialDistribution(1));
+                        raise(5, startSlave, new BasicIntSequentialDistribution(1));
 					}
 				};
-				
-				nodeView.start();
-				parentNode.startAfterTerminationOf(1000, nodeView);
-				terminateAfterTerminationOf(10000, parentNode);
+
+				spawnLeader.start();
+				slaveNodes.startAfterTerminationOf(1000, spawnLeader);
+				terminateAfterTerminationOf(10000, spawnLeader);
 			}
 
 		};
