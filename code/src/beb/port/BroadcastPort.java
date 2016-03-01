@@ -1,7 +1,7 @@
-package aaaaa.broadcast.port;
+package beb.port;
 
-import aaaaa.broadcast.event.Broadcast;
-import aaaaa.broadcast.event.Deliver;
+import beb.event.Broadcast;
+import beb.event.Deliver;
 import se.sics.kompics.PortType;
 
 public class BroadcastPort extends PortType {

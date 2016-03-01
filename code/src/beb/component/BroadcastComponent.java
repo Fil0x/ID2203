@@ -1,14 +1,14 @@
-package aaaaa.broadcast.component;
+package beb.component;
 
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import aaaaa.broadcast.event.Broadcast;
-import aaaaa.broadcast.event.Deliver;
-import aaaaa.broadcast.event.P2PMessage;
-import aaaaa.broadcast.port.BroadcastPort;
+import beb.event.Broadcast;
+import beb.event.Deliver;
+import beb.event.P2PMessage;
+import beb.port.BroadcastPort;
 import network.TAddress;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
@@ -44,7 +44,6 @@ public class BroadcastComponent extends ComponentDefinition {
 			log.info("Broadcast P2PMessage from " + self.getIp() + ":" + self.getPort());
 			for (TAddress dest : all) {
 				trigger(new P2PMessage(self, dest), network);
-				
 			}
 		}
 

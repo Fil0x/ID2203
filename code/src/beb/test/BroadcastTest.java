@@ -1,8 +1,8 @@
-package aaaaa.broadcast.test;
+package beb.test;
 
-import aaaaa.broadcast.event.Broadcast;
-import aaaaa.broadcast.event.Deliver;
-import aaaaa.broadcast.port.BroadcastPort;
+import beb.event.Broadcast;
+import beb.event.Deliver;
+import beb.port.BroadcastPort;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Positive;
@@ -33,7 +33,6 @@ public class BroadcastTest extends ComponentDefinition {
 			System.out.println("Got a Deliver Event!");
 		}
 	};
-
 
 	{
 		subscribe(startHandler, control);

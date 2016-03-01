@@ -3,9 +3,7 @@ package serializer;
 import com.google.common.base.Optional;
 import com.google.common.primitives.Ints;
 
-import aaaaa.broadcast.event.Broadcast;
-import aaaaa.broadcast.event.Deliver;
-import aaaaa.broadcast.event.P2PMessage;
+import beb.event.P2PMessage;
 import events.Get;
 import events.Put;
 import events.Reply;

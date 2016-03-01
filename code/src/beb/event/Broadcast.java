@@ -1,4 +1,4 @@
-package aaaaa.broadcast.event;
+package beb.event;
 
 import se.sics.kompics.KompicsEvent;
 

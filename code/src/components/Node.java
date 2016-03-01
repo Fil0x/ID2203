@@ -1,25 +1,19 @@
 package components;
 
-import com.google.common.primitives.Ints;
+import beb.event.Broadcast;
+import beb.event.Deliver;
+import beb.port.BroadcastPort;
 
-import beb.BestEffortBroadcast;
-import beb.events.BebDataMessage;
-import events.*;
 import network.TAddress;
-import network.TMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import se.sics.kompics.*;
-import se.sics.kompics.network.Network;
-import se.sics.kompics.network.Transport;
-import se.sics.kompics.timer.*;
-import se.sics.kompics.timer.Timer;
 
 import java.util.*;
 
 public class Node extends ComponentDefinition {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(Node.class);
     private final int UPPERBOUND = Integer.MAX_VALUE;
 
@@ -32,18 +26,13 @@ public class Node extends ComponentDefinition {
     // Key data
     private Map<Integer, Integer> keyData = new HashMap<>(); // It holds its data and that of the replica
 
-//    private Positive<BestEffortBroadcast> beb = requires(BestEffortBroadcast.class);
-    private Positive<Network> net = requires(Network.class);
-    private Positive<Timer> timer = requires(Timer.class);
+    Positive<BroadcastPort> beb = requires(BroadcastPort.class);
 
     public Node(Init init) {
         this.self = init.self;
         this.leader = init.leader;
         this.isLeader = init.isLeader;
         this.allNodes = init.allNodes;
-
-
-        // subscribe(bebDataHandler, beb);
     }
 
     Handler<Start> startHandler = new Handler<Start>() {
@@ -52,22 +41,22 @@ public class Node extends ComponentDefinition {
             if(!isLeader)
                 LOG.info("Slave  :" + self.toString());
             else {
-                LOG.info("Leader : " + self.toString());
-                trigger(new BebDataMessage(self, allNodes.get(5), Transport.TCP), net);
+                LOG.info("Leader :" + self.toString());
+                trigger(new Broadcast(), beb);
             }
         }
     };
 
-    Handler<BebDataMessage> bebDataHandler = new Handler<BebDataMessage>() {
+    Handler<Deliver> bebDeliver = new Handler<Deliver>() {
         @Override
-        public void handle(BebDataMessage msg) {
-            LOG.info("HERE");
+        public void handle(Deliver msg) {
+            LOG.info("HERE:" + self.toString());
         }
     };
 
     {
         subscribe(startHandler, control);
-        subscribe(bebDataHandler, net);
+        subscribe(bebDeliver, beb);
     }
 
     public static class Init extends se.sics.kompics.Init<Node> {

@@ -1,8 +1,6 @@
 package general;
 
-import aaaaa.broadcast.event.Broadcast;
-import aaaaa.broadcast.event.Deliver;
-import aaaaa.broadcast.event.P2PMessage;
+import beb.event.P2PMessage;
 import components.Node;
 import components.Spawner;
 //import events.Join;

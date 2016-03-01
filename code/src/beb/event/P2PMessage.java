@@ -1,4 +1,4 @@
-package aaaaa.broadcast.event;
+package beb.event;
 
 import network.TAddress;
 import network.THeader;

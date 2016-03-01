@@ -3,7 +3,6 @@ package simulation;
 import java.util.List;
 
 import components.Node;
-import components.NodeParent;
 import network.TAddress;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Init;
@@ -90,8 +89,6 @@ public class NodeStructureScenario {
                         raise(1, startLeader);
                     }
                 };
-
-				
 
                 slaves.start();
                 leader.startAfterTerminationOf(1000, slaves);

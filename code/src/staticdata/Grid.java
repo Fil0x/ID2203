@@ -9,13 +9,9 @@ import java.util.List;
 
 public class Grid {
 
-    public static List<TAddress> pi = null;
+    private static final int COMPONENTSPERNODE = 4;
 
     public static List<TAddress> getAllNodes() {
-
-        if(pi != null)
-            return pi;
-
         try {
             // Create the static 6 nodes
             List<TAddress> nodes = new ArrayList<>();
@@ -23,10 +19,9 @@ public class Grid {
             int basePort = 20000;
 
             for (int i = 0; i < 6; i++) {
-                nodes.add(new TAddress(baseIP, basePort + i));
+                nodes.add(new TAddress(baseIP, basePort + i * COMPONENTSPERNODE));
             }
 
-            Grid.pi = nodes;
             return nodes;
         } catch (UnknownHostException e) {
             e.printStackTrace();
