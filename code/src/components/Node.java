@@ -13,7 +13,7 @@ import se.sics.kompics.*;
 import java.util.*;
 
 public class Node extends ComponentDefinition {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(Node.class);
     private final int UPPERBOUND = Integer.MAX_VALUE;
 

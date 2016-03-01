@@ -12,6 +12,7 @@ import se.sics.kompics.Kompics;
 import se.sics.kompics.network.netty.serialization.Serializers;
 import serializer.NetSerializer;
 import serializer.PayloadSerializer;
+import staticdata.Grid;
 
 public class Main {
 
@@ -31,6 +32,6 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Kompics.createAndStart(Spawner.class, Init.NONE);
+         Kompics.createAndStart(Spawner.class, Init.NONE);
     }
 }
