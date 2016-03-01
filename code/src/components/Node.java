@@ -1,13 +1,15 @@
 package components;
 
-import beb.event.Broadcast;
-import beb.event.Deliver;
+import beb.event.BEBDeliver;
 import beb.port.BroadcastPort;
 
 import network.TAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import pp2p.event.Pp2pDeliver;
+import pp2p.event.Pp2pSend;
+import pp2p.port.PerfectPointToPointLink;
 import se.sics.kompics.*;
 
 import java.util.*;
@@ -27,6 +29,7 @@ public class Node extends ComponentDefinition {
     private Map<Integer, Integer> keyData = new HashMap<>(); // It holds its data and that of the replica
 
     Positive<BroadcastPort> beb = requires(BroadcastPort.class);
+    Positive<PerfectPointToPointLink> pp2p = requires(PerfectPointToPointLink.class);
 
     public Node(Init init) {
         this.self = init.self;
@@ -42,21 +45,29 @@ public class Node extends ComponentDefinition {
                 LOG.info("Slave  :" + self.toString());
             else {
                 LOG.info("Leader :" + self.toString());
-                trigger(new Broadcast(), beb);
+                trigger(new Pp2pSend(self, new Pp2pDeliver()), pp2p);
             }
         }
     };
 
-    Handler<Deliver> bebDeliver = new Handler<Deliver>() {
+    Handler<BEBDeliver> bebDeliver = new Handler<BEBDeliver>() {
         @Override
-        public void handle(Deliver msg) {
-            LOG.info("HERE:" + self.toString());
+        public void handle(BEBDeliver msg) {
+            LOG.info("Got BEB msg:" + self.toString());
+        }
+    };
+
+    Handler<Pp2pDeliver> pp2pDeliver = new Handler<Pp2pDeliver>() {
+        @Override
+        public void handle(Pp2pDeliver msg) {
+            LOG.info("Got P2P msg:" + self.toString());
         }
     };
 
     {
         subscribe(startHandler, control);
         subscribe(bebDeliver, beb);
+        subscribe(pp2pDeliver, pp2p);
     }
 
     public static class Init extends se.sics.kompics.Init<Node> {

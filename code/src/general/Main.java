@@ -1,6 +1,6 @@
 package general;
 
-import beb.event.P2PMessage;
+import beb.event.BEBMessage;
 import components.Node;
 import components.Spawner;
 //import events.Join;
@@ -12,7 +12,6 @@ import se.sics.kompics.Kompics;
 import se.sics.kompics.network.netty.serialization.Serializers;
 import serializer.NetSerializer;
 import serializer.PayloadSerializer;
-import staticdata.Grid;
 
 public class Main {
 
@@ -27,11 +26,11 @@ public class Main {
         Serializers.register(Node.class, "ppS");
 
 
-        Serializers.register(P2PMessage.class, "ppS");
+        Serializers.register(BEBMessage.class, "ppS");
 
     }
 
     public static void main(String[] args) {
-         Kompics.createAndStart(Spawner.class, Init.NONE);
+        Kompics.createAndStart(Spawner.class, Init.NONE);
     }
 }
