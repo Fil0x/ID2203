@@ -59,4 +59,22 @@ public class Grid {
 
         return group;
     }
+
+    public static ReplicationGroup getReplicaGroupByAddress(TAddress addr) {
+        for (ReplicationGroup r: getReplicationGroups()) {
+            if(r.contains(addr))
+                return r;
+        }
+        // Shouldn't happen
+        return null;
+    }
+
+    public static ReplicationGroup getReplicaGroupByKey(int key) {
+        for (ReplicationGroup r: getReplicationGroups()) {
+            if(r.inRange(key))
+                return r;
+        }
+        // Shouldn't happen
+        return null;
+    }
 }

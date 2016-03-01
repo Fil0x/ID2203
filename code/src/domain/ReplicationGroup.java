@@ -25,4 +25,12 @@ public class ReplicationGroup {
     public boolean inRange(int key) {
         return lowerBound <= key && key < upperBound;
     }
+
+    public boolean contains(TAddress addr) {
+        return group.contains(addr);
+    }
+
+    public List<TAddress> getGroup() {
+        return group;
+    }
 }

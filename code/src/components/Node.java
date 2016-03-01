@@ -1,6 +1,7 @@
 package components;
 
 import beb.event.BEBDeliver;
+import beb.event.BEBroadcast;
 import beb.port.BroadcastPort;
 
 import network.TAddress;
@@ -45,7 +46,7 @@ public class Node extends ComponentDefinition {
                 LOG.info("Slave  :" + self.toString());
             else {
                 LOG.info("Leader :" + self.toString());
-                trigger(new Pp2pSend(self, new Pp2pDeliver()), pp2p);
+                trigger(new BEBroadcast(), beb);
             }
         }
     };

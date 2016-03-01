@@ -15,6 +15,7 @@ import se.sics.kompics.Handler;
 import se.sics.kompics.Negative;
 import se.sics.kompics.Positive;
 import se.sics.kompics.network.Network;
+import staticdata.Grid;
 
 public class BroadcastComponent extends ComponentDefinition {
 
@@ -40,7 +41,8 @@ public class BroadcastComponent extends ComponentDefinition {
 		@Override
 		public void handle(BEBroadcast event) {
 			log.info("BEBroadcast BEBMessage from " + self.getIp() + ":" + self.getPort());
-			for (TAddress dest : all) {
+			// for (TAddress dest : all) {
+			for (TAddress dest : Grid.getReplicaGroupByAddress(self).getGroup()) {
 				trigger(new BEBMessage(self, dest), network);
 			}
 		}
