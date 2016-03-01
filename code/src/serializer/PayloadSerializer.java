@@ -2,14 +2,17 @@ package serializer;
 
 import com.google.common.base.Optional;
 import com.google.common.primitives.Ints;
-import events.*;
-import io.netty.buffer.ByteBuf;
-import se.sics.kompics.network.netty.serialization.Serializer;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
+import aaaaa.broadcast.event.Broadcast;
+import aaaaa.broadcast.event.Deliver;
+import aaaaa.broadcast.event.P2PMessage;
+import events.Get;
+import events.Put;
+import events.Reply;
+import io.netty.buffer.ByteBuf;
+import network.THeader;
+import se.sics.kompics.network.netty.serialization.Serializer;
+import se.sics.kompics.network.netty.serialization.Serializers;
 
 public class PayloadSerializer implements Serializer {
 
@@ -17,7 +20,9 @@ public class PayloadSerializer implements Serializer {
     private static final byte GET = 3;
     private static final byte PUT = 4;
     private static final byte REPLY = 5;
-
+    
+    private static final byte P2P = 7;
+    
     @Override
     public int identifier() {
         return 200;
@@ -54,6 +59,14 @@ public class PayloadSerializer implements Serializer {
             buf.writeInt(r.getValue());
             // Total = 1 + 4(key) + 4(value)
         }
+
+        else if(o instanceof P2PMessage) {
+        	P2PMessage r = (P2PMessage) o;
+            buf.writeByte(P2P);
+            Serializers.toBinary(r.header, buf);
+            // Total = 1 + 4(key) + 4(value)
+        }
+
     }
 
     @Override
@@ -86,6 +99,13 @@ public class PayloadSerializer implements Serializer {
 
                 return new Reply(Ints.fromByteArray(rKey),
                                  Ints.fromByteArray(rvalue));
+
+            case P2P: {
+                THeader header = (THeader) Serializers.fromBinary(buf, Optional.absent()); // 1 byte serialiser id + 16 bytes THeader
+                return new P2PMessage(header); // 18 bytes total, check
+            } 
+            
+            
         }
         return null;
     }

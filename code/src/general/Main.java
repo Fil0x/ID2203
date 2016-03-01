@@ -1,7 +1,9 @@
 package general;
 
+import aaaaa.broadcast.event.Broadcast;
+import aaaaa.broadcast.event.Deliver;
+import aaaaa.broadcast.event.P2PMessage;
 import components.Node;
-import components.NodeParent;
 import components.Spawner;
 //import events.Join;
 import network.TAddress;
@@ -12,9 +14,6 @@ import se.sics.kompics.Kompics;
 import se.sics.kompics.network.netty.serialization.Serializers;
 import serializer.NetSerializer;
 import serializer.PayloadSerializer;
-import staticdata.Grid;
-
-import java.util.List;
 
 public class Main {
 
@@ -28,9 +27,9 @@ public class Main {
         Serializers.register(TMessage.class, "netS");
         Serializers.register(Node.class, "ppS");
 
-//        Serializers.register(Join.class, "ppS");
-        // Conversions
-        // Conversions.register(new VAddressConverter());
+
+        Serializers.register(P2PMessage.class, "ppS");
+
     }
 
     public static void main(String[] args) {

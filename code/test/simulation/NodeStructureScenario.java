@@ -18,36 +18,6 @@ import staticdata.Grid;
 
 public class NodeStructureScenario {
 
-	static Operation1 startLeader = new Operation1<StartNodeEvent, Integer>() {
-
-		@Override
-		public StartNodeEvent generate(final Integer self) {
-			return new StartNodeEvent() {
-
-                List<TAddress> allNodes = Grid.getAllNodes();
-                TAddress selfAdr = allNodes.get(0);
-
-				@Override
-				public Class getComponentDefinition() {
-					return Node.class;
-				}
-
-				@Override
-				public Init getComponentInit() {
-                    return new Node.Init(selfAdr, allNodes, true, null);
-				}
-
-				@Override
-				public Address getNodeAddress() {
-					return selfAdr;
-				}
-
-			};
-		}
-
-	};
-
-
 	static Operation1 startSlave = new Operation1<StartNodeEvent, Integer>() {
 
         @Override
@@ -75,26 +45,57 @@ public class NodeStructureScenario {
         }
     };
 
+    static Operation startLeader = new Operation<StartNodeEvent>() {
+
+		@Override
+		public StartNodeEvent generate() {
+			return new StartNodeEvent() {
+
+                List<TAddress> allNodes = Grid.getAllNodes();
+                TAddress selfAdr = allNodes.get(0);
+
+				@Override
+				public Class getComponentDefinition() {
+					return Node.class;
+				}
+
+				@Override
+				public Init getComponentInit() {
+                    return new Node.Init(selfAdr, allNodes, true, null);
+				}
+
+				@Override
+				public Address getNodeAddress() {
+					return selfAdr;
+				}
+
+			};
+		}
+
+	};
+	
 	public static SimulationScenario simpleNodeStructure() {
 		SimulationScenario scenario = new SimulationScenario() {
 			{
-                SimulationScenario.StochasticProcess spawnLeader = new SimulationScenario.StochasticProcess() {
-                    {
-                        eventInterArrivalTime(constant(1000));
-                        raise(1, startLeader, new BasicIntSequentialDistribution(1));
-                    }
-                };
-
-				final SimulationScenario.StochasticProcess slaveNodes = new SimulationScenario.StochasticProcess() {
+				final SimulationScenario.StochasticProcess slaves = new SimulationScenario.StochasticProcess() {
 					{
 						eventInterArrivalTime(constant(1000));
                         raise(5, startSlave, new BasicIntSequentialDistribution(1));
 					}
 				};
+				
+                SimulationScenario.StochasticProcess leader = new SimulationScenario.StochasticProcess() {
+                    {
+                        eventInterArrivalTime(constant(1000));
+                        raise(1, startLeader);
+                    }
+                };
 
-				slaveNodes.start();
-				spawnLeader.startAfterTerminationOf(1000, slaveNodes);
-				terminateAfterTerminationOf(10000, spawnLeader);
+				
+
+                slaves.start();
+                leader.startAfterTerminationOf(1000, slaves);
+				terminateAfterTerminationOf(10000, leader);
 			}
 
 		};
