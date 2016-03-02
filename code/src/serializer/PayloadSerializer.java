@@ -1,13 +1,14 @@
 package serializer;
 
-import beb.event.BEBMessage;
 import com.google.common.base.Optional;
 import com.google.common.primitives.Ints;
 
+import beb.event.BEBMessage;
 import events.Get;
 import events.Put;
 import events.Reply;
 import io.netty.buffer.ByteBuf;
+import kth.id2203.pp2p.event.P2PMessage;
 import network.THeader;
 import se.sics.kompics.network.netty.serialization.Serializer;
 import se.sics.kompics.network.netty.serialization.Serializers;
@@ -19,7 +20,8 @@ public class PayloadSerializer implements Serializer {
     private static final byte PUT = 4;
     private static final byte REPLY = 5;
     
-    private static final byte P2P = 7;
+    private static final byte BEB = 7;
+    private static final byte P2P = 8;
     
     @Override
     public int identifier() {
@@ -60,9 +62,14 @@ public class PayloadSerializer implements Serializer {
 
         else if(o instanceof BEBMessage) {
         	BEBMessage r = (BEBMessage) o;
+            buf.writeByte(BEB);
+            Serializers.toBinary(r.header, buf);
+        }
+    	
+        else if(o instanceof P2PMessage) {
+        	P2PMessage r = (P2PMessage) o;
             buf.writeByte(P2P);
             Serializers.toBinary(r.header, buf);
-            // Total = 1 + 4(key) + 4(value)
         }
 
     }
@@ -98,9 +105,14 @@ public class PayloadSerializer implements Serializer {
                 return new Reply(Ints.fromByteArray(rKey),
                                  Ints.fromByteArray(rvalue));
 
-            case P2P: {
+            case BEB: {
                 THeader header = (THeader) Serializers.fromBinary(buf, Optional.absent()); // 1 byte serialiser id + 16 bytes THeader
                 return new BEBMessage(header); // 18 bytes total, check
+            } 
+            
+            case P2P: {
+                THeader header = (THeader) Serializers.fromBinary(buf, Optional.absent()); // 1 byte serialiser id + 16 bytes THeader
+                return new P2PMessage(header); // 18 bytes total, check
             } 
             
             
