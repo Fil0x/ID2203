@@ -43,7 +43,7 @@ public class BroadcastComponent extends ComponentDefinition {
 			log.info("BEBroadcast BEBMessage from " + self.getIp() + ":" + self.getPort());
 			// for (TAddress dest : all) {
 			for (TAddress dest : Grid.getReplicaGroupByAddress(self).getGroup()) {
-				trigger(new BEBMessage(self, dest), network);
+				trigger(new BEBMessage(self, dest, event.getDeliverEvent()), network);
 			}
 		}
 
@@ -54,7 +54,7 @@ public class BroadcastComponent extends ComponentDefinition {
 		@Override
 		public void handle(BEBMessage event) {
 			log.info("BEBDeliver broadcast message at " + self.getIp() + ":" + self.getPort());
-			trigger(new BEBDeliver(), beb);
+			trigger(event.getDeliverEvent(), beb);
 		}
 
 	};

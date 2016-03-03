@@ -39,16 +39,16 @@ public class Pp2pLink extends ComponentDefinition {
 
     private Handler<Pp2pSend> handlePp2pSend = new Handler<Pp2pSend>() {
         @Override
-        public void handle(Pp2pSend pp2pSend) {
+        public void handle(Pp2pSend event) {
             // Send a message over the network
-            trigger(new Pp2pMessage(self, self), network);
+            trigger(new Pp2pMessage(self, event.getDestination(), event.getDeliverEvent()), network);
         }
     };
 
     private Handler<Pp2pMessage> handlePp2pDeliver = new Handler<Pp2pMessage>() {
         @Override
-        public void handle(Pp2pMessage message) {
-            trigger(new Pp2pDeliver(), pp2p);
+        public void handle(Pp2pMessage event) {
+            trigger(event.getDeliverEvent(), pp2p);
         }
     };
 
