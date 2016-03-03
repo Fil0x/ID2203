@@ -15,6 +15,12 @@ public class BEBMessage extends TMessage {
         this.event = event;
 	}
 
+    public BEBMessage(THeader header, BEBDeliver event) {
+        super(header);
+
+        this.event = event;
+    }
+
     public BEBDeliver getDeliverEvent() {
         return event;
     }

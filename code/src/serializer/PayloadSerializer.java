@@ -1,5 +1,6 @@
 package serializer;
 
+import beb.event.BEBDeliver;
 import com.google.common.base.Optional;
 import com.google.common.primitives.Ints;
 
@@ -8,14 +9,15 @@ import events.Get;
 import events.Put;
 import events.Reply;
 import io.netty.buffer.ByteBuf;
-import kth.id2203.pp2p.event.P2PMessage;
 import network.THeader;
+import org.apache.commons.lang3.SerializationUtils;
+import pp2p.event.Pp2pDeliver;
+import pp2p.event.Pp2pMessage;
 import se.sics.kompics.network.netty.serialization.Serializer;
 import se.sics.kompics.network.netty.serialization.Serializers;
 
 public class PayloadSerializer implements Serializer {
 
-    private static final byte JOIN = 2;
     private static final byte GET = 3;
     private static final byte PUT = 4;
     private static final byte REPLY = 5;
@@ -30,13 +32,6 @@ public class PayloadSerializer implements Serializer {
 
     @Override
     public void toBinary(Object o, ByteBuf buf) {
-//        if(o instanceof Join) {
-//            Join j = (Join) o;
-//            buf.writeByte(JOIN);
-//            // Total: 1
-//        }
-//        else
-        	
     	if(o instanceof Get) {
             Get g = (Get) o;
             buf.writeByte(GET);
@@ -62,14 +57,22 @@ public class PayloadSerializer implements Serializer {
 
         else if(o instanceof BEBMessage) {
         	BEBMessage r = (BEBMessage) o;
+            byte[] event = SerializationUtils.serialize(r.getDeliverEvent());
+
             buf.writeByte(BEB);
             Serializers.toBinary(r.header, buf);
+            buf.writeInt(event.length);
+            buf.writeBytes(event);
         }
     	
-        else if(o instanceof P2PMessage) {
-        	P2PMessage r = (P2PMessage) o;
+        else if(o instanceof Pp2pMessage) {
+        	Pp2pMessage r = (Pp2pMessage) o;
+            byte[] event = SerializationUtils.serialize(r.getDeliverEvent());
+
             buf.writeByte(P2P);
             Serializers.toBinary(r.header, buf);
+            buf.writeInt(event.length);
+            buf.writeBytes(event);
         }
 
     }
@@ -78,8 +81,6 @@ public class PayloadSerializer implements Serializer {
     public Object fromBinary(ByteBuf buf, Optional<Object> hint) {
         byte type = buf.readByte(); // 1 byte
         switch (type) {
-//            case JOIN:
-//                return new Join();
             case GET:
                 byte[] rawKey = new byte[4];
                 buf.readBytes(rawKey);
@@ -107,12 +108,20 @@ public class PayloadSerializer implements Serializer {
 
             case BEB: {
                 THeader header = (THeader) Serializers.fromBinary(buf, Optional.absent()); // 1 byte serialiser id + 16 bytes THeader
-                return new BEBMessage(header); // 18 bytes total, check
+                int eventSize = buf.readInt();
+                byte[] event = new byte[eventSize];
+                buf.readBytes(event);
+                BEBDeliver bebDeliver = SerializationUtils.deserialize(event);
+                return new BEBMessage(header, bebDeliver); // 18 bytes total, check
             } 
             
             case P2P: {
                 THeader header = (THeader) Serializers.fromBinary(buf, Optional.absent()); // 1 byte serialiser id + 16 bytes THeader
-                return new P2PMessage(header); // 18 bytes total, check
+                int eventSize = buf.readInt();
+                byte[] event = new byte[eventSize];
+                buf.readBytes(event);
+                Pp2pDeliver pp2pDeliver = SerializationUtils.deserialize(event);
+                return new Pp2pMessage(header, pp2pDeliver); // 18 bytes total, check
             } 
             
             

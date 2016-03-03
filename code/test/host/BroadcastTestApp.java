@@ -4,6 +4,7 @@ package host;
 import beb.event.BEBDeliver;
 import beb.event.BEBroadcast;
 import beb.port.BroadcastPort;
+import riwcm.component.AckMessage;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Positive;
@@ -24,7 +25,7 @@ public class BroadcastTestApp extends ComponentDefinition {
 		public void handle(Start event) {
 			if (triggerTestMessage) {
 				System.out.println("Triger Test Broadcast message");
-				trigger(new BEBroadcast(), broadcastPort);
+				trigger(new BEBroadcast(new BEBDeliver()), broadcastPort);
 			}
 		}
 	};

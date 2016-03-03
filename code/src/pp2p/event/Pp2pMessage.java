@@ -14,6 +14,12 @@ public class Pp2pMessage extends TMessage {
         this.deliverEvent = event;
 	}
 
+    public Pp2pMessage(THeader header, Pp2pDeliver deliverEvent) {
+        super(header);
+
+        this.deliverEvent = deliverEvent;
+    }
+
     public Pp2pDeliver getDeliverEvent() {
         return deliverEvent;
     }

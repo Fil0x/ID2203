@@ -10,7 +10,7 @@ public class AckMessage extends Pp2pDeliver {
 
     private final Integer r;
 
-    protected AckMessage(TAddress source, Integer r) {
+    public AckMessage(TAddress source, Integer r) {
         super(source);
         this.r = r;
     }

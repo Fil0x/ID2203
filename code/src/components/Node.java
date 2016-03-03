@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 import pp2p.event.Pp2pDeliver;
 import pp2p.event.Pp2pSend;
 import pp2p.port.PerfectPointToPointLink;
+import riwcm.event.ArReadResponse;
+import riwcm.event.ArWriteResponse;
+import riwcm.port.AtomicRegister;
 import se.sics.kompics.*;
 
 import java.util.*;
@@ -29,7 +32,7 @@ public class Node extends ComponentDefinition {
     // Key data
     private Map<Integer, Integer> keyData = new HashMap<>(); // It holds its data and that of the replica
 
-    Positive<BroadcastPort> beb = requires(BroadcastPort.class);
+    Positive<AtomicRegister> nnar = requires(AtomicRegister.class);
     Positive<PerfectPointToPointLink> pp2p = requires(PerfectPointToPointLink.class);
 
     public Node(Init init) {
@@ -46,15 +49,23 @@ public class Node extends ComponentDefinition {
                 LOG.info("Slave  :" + self.toString());
             else {
                 LOG.info("Leader :" + self.toString());
-                trigger(new BEBroadcast(), beb);
             }
         }
     };
 
-    Handler<BEBDeliver> bebDeliver = new Handler<BEBDeliver>() {
+    Handler<ArReadResponse> readResponse = new Handler<ArReadResponse>() {
+
         @Override
-        public void handle(BEBDeliver msg) {
-            LOG.info("Got BEB msg:" + self.toString());
+        public void handle(ArReadResponse msg) {
+            LOG.info("Got ArRead msg:" + self.toString() + ". Read value: " + msg.getValue());
+        }
+    };
+
+    Handler<ArWriteResponse> writeResponse = new Handler<ArWriteResponse>() {
+
+        @Override
+        public void handle(ArWriteResponse msg) {
+            LOG.info("Got ArWrite msg:" + self.toString());
         }
     };
 
@@ -67,7 +78,8 @@ public class Node extends ComponentDefinition {
 
     {
         subscribe(startHandler, control);
-        subscribe(bebDeliver, beb);
+        subscribe(readResponse, nnar);
+        subscribe(writeResponse, nnar);
         subscribe(pp2pDeliver, pp2p);
     }
 

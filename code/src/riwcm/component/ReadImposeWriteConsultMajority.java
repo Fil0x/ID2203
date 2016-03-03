@@ -9,7 +9,9 @@ import org.slf4j.LoggerFactory;
 import pp2p.event.Pp2pSend;
 import pp2p.port.PerfectPointToPointLink;
 import riwcm.event.ArReadRequest;
+import riwcm.event.ArReadResponse;
 import riwcm.event.ArWriteRequest;
+import riwcm.event.ArWriteResponse;
 import riwcm.port.AtomicRegister;
 import se.sics.kompics.*;
 import se.sics.kompics.network.Address;
@@ -165,6 +167,12 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
                 readlist := [⊥]N ;
                 trigger ⟨ beb, Broadcast | [READ, rid] ⟩;
             */
+            rid++;
+            writeval = event.getValue();
+            acks = 0;
+            readlist.clear();
+
+            trigger(new BEBroadcast(new ReadArMessage(self, rid)), beb);
 
         }
     };
@@ -173,13 +181,18 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
         @Override
         public void handle(WriteArMessage event) {
             /*
-            upon event ⟨ nnar, Write | v ⟩ do
-                rid := rid + 1;
-                writeval := v;
-                acks := 0;
-                readlist := [⊥]N ;
-                trigger ⟨ beb, Broadcast | [READ, rid] ⟩;
+            upon event ⟨ beb, Deliver | p, [WRITE, r, ts′, wr′, v′] ⟩ do
+                if (ts′, wr′) is larger than (ts, wr) then
+                    (ts, wr, val) := (ts′, wr′, v′);
+                    trigger ⟨ pl, Send | p, [ACK, r] ⟩;
              */
+            if(event.getTs() > ts && event.getWr() > wr) {
+                ts = event.getTs();
+                wr = event.getWr();
+                val = event.getVal();
+
+            }
+            trigger(new Pp2pSend(event.getSource(), new AckMessage(self, event.getRid())), pp2p);
         }
     };
 
@@ -187,13 +200,28 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
         @Override
         public void handle(AckMessage event) {
             /*
-            upon event ⟨ nnar, Write | v ⟩ do
-                rid := rid + 1;
-                writeval := v;
-                acks := 0;
-                readlist := [⊥]N ;
-                trigger ⟨ beb, Broadcast | [READ, rid] ⟩;
+            upon event ⟨ pl, Deliver | q, [ACK, r] ⟩ such that r = rid do
+                acks := acks + 1;
+                if acks > N/2 then
+                    acks := 0;
+                    if reading = TRUE then
+                        reading := FALSE;
+                        trigger ⟨ nnar, ReadReturn | readval ⟩;
+                    else
+                        trigger ⟨ nnar, WriteReturn ⟩;
              */
+
+            acks += 1;
+            if(acks > (numNodes / 2)) {
+                acks = 0;
+                if(reading) {
+                    reading = false;
+                    trigger(new ArReadResponse(readval), ar);
+                }
+                else {
+                    trigger(new ArWriteResponse(), ar);
+                }
+            }
         }
     };
 
