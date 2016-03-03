@@ -1,3 +1,11 @@
+#TEX
+*.aux		
+log.log		
+*.pdf		
+*.gz
+*.toc
+
+
 *.class
 
 # Mobile Tools for Java (J2ME)
