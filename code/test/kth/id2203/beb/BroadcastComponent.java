@@ -5,9 +5,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import beb.event.BEBDeliver;
-import beb.event.BEBroadcast;
-import beb.port.BroadcastPort;
+import kth.id2203.beb.event.BEBDeliver;
+import kth.id2203.beb.event.BEBroadcast;
+import kth.id2203.beb.port.BroadcastPort;
 import kth.id2203.pp2p.event.P2PDeliver;
 import kth.id2203.pp2p.event.P2PSend;
 import kth.id2203.pp2p.port.Pp2pLinkPort;
@@ -53,7 +53,7 @@ public class BroadcastComponent extends ComponentDefinition {
 		@Override
 		public void handle(P2PDeliver event) {
 			log.info("BEBDeliver broadcast message at " + self.getIp() + ":" + self.getPort());
-			trigger(new BEBDeliver(), beb);
+			trigger(new BEBDeliver(event.getFrom()), beb);
 		}
 
 	};

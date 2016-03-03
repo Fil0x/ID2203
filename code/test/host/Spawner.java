@@ -4,17 +4,19 @@ import java.net.InetAddress;
 import java.util.List;
 
 import host.p2p.Pp2pLinkHost;
+import kth.id2203.NodeHost;
 import network.TAddress;
 import se.sics.kompics.ComponentDefinition;
+import se.sics.kompics.Init;
 import staticdata.Grid;
 
 public class Spawner extends ComponentDefinition {
 
 	public Spawner() {
-		List<TAddress> all = Grid.getAllNodes();
-    	for (int i = 0; i < all.size(); i++) {
-    		create(BroadcastComponentHost.class, new BroadcastComponentHost.Init(all.get(i), all));
-    	}
+//		List<TAddress> all = Grid.getAllNodes();
+//    	for (int i = 0; i < all.size(); i++) {
+//    		create(BroadcastComponentHost.class, new BroadcastComponentHost.Init(all.get(i), all));
+//    	}
 		
 		
 //		 try {
@@ -28,6 +30,6 @@ public class Spawner extends ComponentDefinition {
 //			e.printStackTrace();
 //		}
          
-		
+		create(NodeHost.class, Init.NONE);
 	}
 }

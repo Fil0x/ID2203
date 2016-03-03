@@ -4,15 +4,14 @@ package simulation.beb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import beb.event.BEBDeliver;
-import beb.event.BEBroadcast;
-import beb.port.BroadcastPort;
+import kth.id2203.beb.event.BEBDeliver;
+import kth.id2203.beb.event.BEBroadcast;
+import kth.id2203.beb.port.BroadcastPort;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Positive;
 import se.sics.kompics.Start;
 import se.sics.kompics.simulator.util.GlobalView;
-import simulation.pp2p.LinkPoint;
 
 public class BebPoint extends ComponentDefinition {
 

@@ -2,8 +2,8 @@ package simulation.beb;
 
 import java.util.List;
 
-import beb.port.BroadcastPort;
 import kth.id2203.beb.BroadcastComponent;
+import kth.id2203.beb.port.BroadcastPort;
 import kth.id2203.pp2p.Pp2pLink;
 import kth.id2203.pp2p.port.Pp2pLinkPort;
 import network.TAddress;
