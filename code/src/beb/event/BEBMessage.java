@@ -6,12 +6,16 @@ import network.TMessage;
 import se.sics.kompics.network.Transport;
 
 public class BEBMessage extends TMessage {
-	
-	public BEBMessage(TAddress src, TAddress dst) {
-		super(src, dst, Transport.TCP);
+
+	private final BEBDeliver event;
+
+	public BEBMessage(TAddress src, TAddress dst, BEBDeliver event) {
+        super(src, dst, Transport.TCP);
+
+        this.event = event;
 	}
 
-	public BEBMessage(THeader header) {
-		super(header);
-	}
+    public BEBDeliver getDeliverEvent() {
+        return event;
+    }
 }

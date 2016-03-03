@@ -7,11 +7,14 @@ import se.sics.kompics.network.Transport;
 
 public class Pp2pMessage extends TMessage {
 
-	public Pp2pMessage(TAddress src, TAddress dst) {
+    private final Pp2pDeliver deliverEvent;
+
+	public Pp2pMessage(TAddress src, TAddress dst, Pp2pDeliver event) {
 		super(src, dst, Transport.TCP);
+        this.deliverEvent = event;
 	}
 
-	public Pp2pMessage(THeader header) {
-		super(header);
-	}
+    public Pp2pDeliver getDeliverEvent() {
+        return deliverEvent;
+    }
 }
