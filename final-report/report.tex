@@ -61,9 +61,26 @@ The following figure depicts the overall design of the system.
 	2-3 pages).}
 
 \section{System Simulations and Scenarios}
-\textit{The report should not be too long ($\approx$
-	2-3 pages).}
 
+\subsection{Perfect Point to Point Link}
+Perfect Point to Point Link is the base abstraction in our System Model. The properties of Perfect Point to Point Link are;
+ 
+\begin{itemize}
+	\item Reliable Delivery: If a correct process p send a message m to correct process q then q eventually delivers m.
+	
+	\item No Duplication: No message is delivered by a process more than once.
+	
+	\item No Creation: If some process q delivers a message m with sender p, then m was previously sent by process p to q.
+
+\end{itemize}
+
+The Reliable Delivery property is simulated in scenario \textit{Pp2pLinkScenario.java}. It let process instance of \textit{LinkPoint.java} to send predevided fixed number of messages (1000) to another instance of \textit{LinkPoint.java}, and \textit{Pp2pSimulationObserver.java} listens on number of messages received at second instnce, and captures in a 
+\textit{GlobalView}. GlobalView terminate and report to Simulation at sucessfull receival of all messages.
+
+Although this can be even proven with the standard trasport-level protocol used in the Network model, which is TCP. 
+So, As our Perfect Point to Point Link abstraction is build on top of TCP, No Duplication and No creation of messages are also satisfied.
+
+\subsection{Best Effort Broadcast}
 
 \section{Conclusions}
 
