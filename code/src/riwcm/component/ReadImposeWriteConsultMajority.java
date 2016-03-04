@@ -16,10 +16,7 @@ import riwcm.port.AtomicRegister;
 import se.sics.kompics.*;
 import se.sics.kompics.network.Address;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 
@@ -32,6 +29,9 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
     private TAddress self;
     private List<TAddress> all;
 
+    // Key data
+    private Map<Integer, Integer> keyData = new HashMap<>(); // It holds its data and that of the replica
+
     private List<ReadInfo> readlist;
     private Integer ts, wr, val;
     private Integer acks;
@@ -42,7 +42,6 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
     private Integer maxts;
     private Integer numNodes;
     private boolean reading;
-    private WriteArMessage wrmsg;
 
     public ReadImposeWriteConsultMajority(Init init) {
         this.self = init.getSelf();
@@ -53,7 +52,7 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
         this.acks = 0;
         this.reading = false;
         this.ts = 0;
-        this.val = 0;
+        this.val = 0; // This is the value of the register we are trying to read
         this.wr = 0;
         this.readval = 0;
         this.writeval = 0;
@@ -81,7 +80,7 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 
     Handler<ArReadRequest> readRequest = new Handler<ArReadRequest>() {
         @Override
-        public void handle(ArReadRequest arReadRequest) {
+        public void handle(ArReadRequest event) {
             /*
             upon event ⟨ nnar, Read ⟩ do
                 rid := rid + 1;
@@ -94,7 +93,7 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
             acks = 0;
             readlist.clear();
             reading = true;
-            trigger(new BEBroadcast(new ReadArMessage(self, rid)), beb);
+            trigger(new BEBroadcast(new ReadArMessage(self, event.getKey(), rid)), beb);
         }
     };
 
@@ -105,7 +104,7 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
             upon event ⟨ beb, Deliver | p, [READ, r] ⟩ do
                 trigger ⟨ pl, Send | p, [VALUE, r, ts, wr, val] ⟩;
             */
-            ArDataMessage msg = new ArDataMessage(event.getSource(), event.getRid(), ts, wr, val);
+            ArDataMessage msg = new ArDataMessage(event.getSource(), event.getKey(), event.getRid(), ts, wr, keyData.get(event.getKey()));
             trigger(new Pp2pSend(event.getSource(), msg), pp2p);
         }
     };
@@ -143,12 +142,13 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
                     maxts = new Integer(highest.getTs());
                     readlist.clear();
 
+                    WriteArMessage wrmsg;
                     if(reading) {
-                        wrmsg = new WriteArMessage(self, rid, maxts, rr, readval);
+                        wrmsg = new WriteArMessage(self, event.getKey(), rid, maxts, rr, readval);
                         trigger(new BEBroadcast(wrmsg), beb);
                     }
                     else {
-                        wrmsg = new WriteArMessage(self, rid, maxts + 1, self.hashCode(), writeval);
+                        wrmsg = new WriteArMessage(self, event.getKey(), rid, maxts + 1, self.hashCode(), writeval);
                         trigger(new BEBroadcast(wrmsg), beb);
                     }
                 }
@@ -172,7 +172,7 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
             acks = 0;
             readlist.clear();
 
-            trigger(new BEBroadcast(new ReadArMessage(self, rid)), beb);
+            trigger(new BEBroadcast(new ReadArMessage(self, event.getKey(), rid)), beb);
 
         }
     };
@@ -189,10 +189,10 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
             if(event.getTs() > ts && event.getWr() > wr) {
                 ts = event.getTs();
                 wr = event.getWr();
-                val = event.getVal();
-
+                // val = event.getVal();
+                keyData.put(event.getKey(), event.getVal());
             }
-            trigger(new Pp2pSend(event.getSource(), new AckMessage(self, event.getRid())), pp2p);
+            trigger(new Pp2pSend(event.getSource(), new AckMessage(self, event.getKey(), event.getRid())), pp2p);
         }
     };
 
@@ -216,10 +216,10 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
                 acks = 0;
                 if(reading) {
                     reading = false;
-                    trigger(new ArReadResponse(readval), ar);
+                    trigger(new ArReadResponse(event.getKey(), readval), ar);
                 }
                 else {
-                    trigger(new ArWriteResponse(), ar);
+                    trigger(new ArWriteResponse(event.getKey()), ar);
                 }
             }
         }

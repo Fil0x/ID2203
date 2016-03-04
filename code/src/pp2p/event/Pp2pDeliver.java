@@ -18,4 +18,6 @@ public class Pp2pDeliver implements Serializable, KompicsEvent {
     public TAddress getSource() {
         return source;
     }
+
+    public byte getType() { return (byte) 0;}
 }

@@ -1,5 +1,6 @@
 package components;
 
+import client.components.ClientHost;
 import network.TAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,5 +14,8 @@ public class Spawner extends ComponentDefinition {
     public Spawner() {
         for(TAddress addr: Grid.getAllNodes())
             create(ComponentHost.class, new ComponentHost.Init(addr));
+
+        // Start a client
+        create(ClientHost.class, new ClientHost.Init(Grid.getClientAddress(), Grid.getAllNodes()));
     }
 }

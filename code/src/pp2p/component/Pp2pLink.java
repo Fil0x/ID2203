@@ -14,6 +14,7 @@ import se.sics.kompics.Handler;
 import se.sics.kompics.Negative;
 import se.sics.kompics.Positive;
 import se.sics.kompics.network.Network;
+import staticdata.Grid;
 
 import java.util.List;
 
@@ -41,6 +42,7 @@ public class Pp2pLink extends ComponentDefinition {
         @Override
         public void handle(Pp2pSend event) {
             // Send a message over the network
+            LOG.info("Sending message over the NETWORK to: " + event.getDestination());
             trigger(new Pp2pMessage(self, event.getDestination(), event.getDeliverEvent()), network);
         }
     };
@@ -48,6 +50,7 @@ public class Pp2pLink extends ComponentDefinition {
     private Handler<Pp2pMessage> handlePp2pDeliver = new Handler<Pp2pMessage>() {
         @Override
         public void handle(Pp2pMessage event) {
+            LOG.info("Received message from:" + event.getSource());
             trigger(event.getDeliverEvent(), pp2p);
         }
     };

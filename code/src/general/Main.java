@@ -7,6 +7,7 @@ import components.Spawner;
 import network.TAddress;
 import network.THeader;
 import network.TMessage;
+import pp2p.event.Pp2pMessage;
 import se.sics.kompics.Init;
 import se.sics.kompics.Kompics;
 import se.sics.kompics.network.netty.serialization.Serializers;
@@ -25,9 +26,8 @@ public class Main {
         Serializers.register(TMessage.class, "netS");
         Serializers.register(Node.class, "ppS");
 
-
         Serializers.register(BEBMessage.class, "ppS");
-
+        Serializers.register(Pp2pMessage.class, "ppS");
     }
 
     public static void main(String[] args) {

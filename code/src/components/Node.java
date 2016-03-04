@@ -1,36 +1,34 @@
 package components;
 
-import beb.event.BEBDeliver;
-import beb.event.BEBroadcast;
-import beb.port.BroadcastPort;
-
+import domain.ReplicationGroup;
+import client.events.GetRequest;
+import client.events.PutRequest;
 import network.TAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pp2p.event.Pp2pDeliver;
-import pp2p.event.Pp2pSend;
+import pp2p.event.Pp2pMessage;
 import pp2p.port.PerfectPointToPointLink;
+import riwcm.event.ArReadRequest;
 import riwcm.event.ArReadResponse;
+import riwcm.event.ArWriteRequest;
 import riwcm.event.ArWriteResponse;
 import riwcm.port.AtomicRegister;
 import se.sics.kompics.*;
+import staticdata.Grid;
 
 import java.util.*;
 
 public class Node extends ComponentDefinition {
 
     private static final Logger LOG = LoggerFactory.getLogger(Node.class);
-    private final int UPPERBOUND = Integer.MAX_VALUE;
 
     // View data
     private TAddress leader;
     private TAddress self;
     private boolean isLeader;
     private List<TAddress> allNodes;
-
-    // Key data
-    private Map<Integer, Integer> keyData = new HashMap<>(); // It holds its data and that of the replica
 
     Positive<AtomicRegister> nnar = requires(AtomicRegister.class);
     Positive<PerfectPointToPointLink> pp2p = requires(PerfectPointToPointLink.class);
@@ -76,11 +74,48 @@ public class Node extends ComponentDefinition {
         }
     };
 
+    Handler<GetRequest> getRequest = new Handler<GetRequest>() {
+        @Override
+        public void handle(GetRequest event) {
+            ReplicationGroup r = Grid.getReplicaGroupByKey(event.getKey());
+            if(r.contains(self)) {
+                // we belong to the group that can handle the key
+                trigger(new ArReadRequest(event.getKey()), nnar);
+            }
+            else {
+                // pick a random node of that group and send it
+                List<TAddress> group = r.getGroup();
+                TAddress dest = group.get((new Random()).nextInt(group.size()));
+                trigger(new Pp2pMessage(self, dest, event), pp2p);
+            }
+        }
+    };
+
+    Handler<PutRequest> putRequest = new Handler<PutRequest>() {
+        @Override
+        public void handle(PutRequest event) {
+            LOG.info("Received PUT request");
+            ReplicationGroup r = Grid.getReplicaGroupByKey(event.getKey());
+            if(r.contains(self)) {
+                // we belong to the group that can handle the key
+                trigger(new ArWriteRequest(event.getKey(), event.getValue()), nnar);
+            }
+            else {
+                // pick a random node of that group and send it
+                List<TAddress> group = r.getGroup();
+                TAddress dest = group.get((new Random()).nextInt(group.size()));
+                trigger(new Pp2pMessage(self, dest, event), pp2p);
+            }
+        }
+    };
+
     {
         subscribe(startHandler, control);
         subscribe(readResponse, nnar);
         subscribe(writeResponse, nnar);
         subscribe(pp2pDeliver, pp2p);
+        subscribe(getRequest, pp2p);
+        subscribe(putRequest, pp2p);
     }
 
     public static class Init extends se.sics.kompics.Init<Node> {

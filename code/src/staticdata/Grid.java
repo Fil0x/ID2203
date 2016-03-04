@@ -3,6 +3,8 @@ package staticdata;
 
 import domain.ReplicationGroup;
 import network.TAddress;
+import util.Hasher;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -10,9 +12,29 @@ import java.util.List;
 
 public class Grid {
 
-    private static final int DELTA = 2;
-    private static final int NODESCOUNT = 6;
+    private static final int DELTA = 3;
+    private static final int NODESCOUNT = 9;
     private static final int KEYSPERGROUP = 20;
+
+    public static final byte GETREQ = 3;
+    public static final byte PUTREQ = 4;
+    public static final byte GETREPLY = 5;
+    public static final byte PUTREPLY = 6;
+
+    public static final byte BEB = 7;
+    public static final byte P2P = 8;
+
+    public static TAddress getClientAddress() {
+        try {
+            InetAddress baseIP = InetAddress.getByName("127.0.0.1");
+            int basePort = 20000 + NODESCOUNT;
+
+            return new TAddress(baseIP, basePort);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     public static List<TAddress> getAllNodes() {
         try {
@@ -70,11 +92,16 @@ public class Grid {
     }
 
     public static ReplicationGroup getReplicaGroupByKey(int key) {
+        int hashedKey = Hasher.hash(key, getTotalKeys());
         for (ReplicationGroup r: getReplicationGroups()) {
-            if(r.inRange(key))
+            if(r.inRange(hashedKey))
                 return r;
         }
         // Shouldn't happen
         return null;
+    }
+
+    private static int getTotalKeys() {
+        return KEYSPERGROUP * (NODESCOUNT/DELTA);
     }
 }
