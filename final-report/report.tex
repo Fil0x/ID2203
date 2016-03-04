@@ -74,13 +74,32 @@ Perfect Point to Point Link is the base abstraction in our System Model. The pro
 
 \end{itemize}
 
-The Reliable Delivery property is simulated in scenario \textit{Pp2pLinkScenario.java}. It let process instance of \textit{LinkPoint.java} to send predevided fixed number of messages (1000) to another instance of \textit{LinkPoint.java}, and \textit{Pp2pSimulationObserver.java} listens on number of messages received at second instnce, and captures in a 
+The Reliable Delivery property is simulated in scenario \textit{Pp2pLinkScenario.java}. It let process instance of \textit{LinkPoint.java} to send a constant number of messages (1000) to another instance of \textit{LinkPoint.java}, and \textit{Pp2pSimulationObserver.java} listens on number of messages received at second instnce, and captures in a 
 \textit{GlobalView}. GlobalView terminate and report to Simulation at sucessfull receival of all messages.
 
 Although this can be even proven with the standard trasport-level protocol used in the Network model, which is TCP. 
 So, As our Perfect Point to Point Link abstraction is build on top of TCP, No Duplication and No creation of messages are also satisfied.
 
 \subsection{Best Effort Broadcast}
+We have \textit{Best Effort Broadcast} component build on top of the 
+Reliable Point to Point Link. That is, when the Beb Component broadcast a message, it loops through all the processes in the list and use Point to Point Send on its underlyine Pp2p Component.
+The properties should be satisfied according the abstraction are:
+
+\begin{itemize}
+	
+	\item Validity: If a correct process p broadcast a message m then all correct processes eventually delivers m.
+		
+	\item No Duplication: No message is delivered more than once.
+		
+	\item No Creation: If some process delivers a message m with sender p, then m was previously broadcast by process p to q.
+
+\textit{No Duplication} and \textit{No Creation} properties are inherent from the underlyine module of 	\textit{Perfect Point to Point Link}.
+\end{itemize}
+
+The Validy property of the component is simulated and verified in \textit{BebScenario.java}. Within \textit{BebScenario.java}, it creates a constant number of (1000) of \textit{BebPointHost.java} instances as the receivers and let another instance of \textit{BebPointHost.java} to broadcast a message. \textit{BebSimulationObserver.java} simply verifies that all receviers are received the broadcast message.
+
+Best-effort broadcast only ensures delivery amoung all correct processes, if the sender does not fail. We have the simulation [TODO] verifiy this.
+
 
 \section{Conclusions}
 
