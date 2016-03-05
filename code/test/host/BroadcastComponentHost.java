@@ -2,12 +2,11 @@ package host;
 
 import java.util.List;
 
-import beb.port.BroadcastPort;
-import host.BroadcastTestApp.Init;
 import kth.id2203.beb.BroadcastComponent;
+import kth.id2203.beb.port.BroadcastPort;
+import kth.id2203.network.TAddress;
 import kth.id2203.pp2p.Pp2pLink;
 import kth.id2203.pp2p.port.Pp2pLinkPort;
-import network.TAddress;
 import se.sics.kompics.Channel;
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;

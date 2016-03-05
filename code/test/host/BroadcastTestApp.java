@@ -1,10 +1,9 @@
 package host;
 
-
-import beb.event.BEBDeliver;
-import beb.event.BEBroadcast;
-import beb.port.BroadcastPort;
-import riwcm.component.AckMessage;
+import kth.id2203.beb.event.BEBDeliver;
+import kth.id2203.beb.event.BEBroadcast;
+import kth.id2203.beb.port.BroadcastPort;
+import kth.id2203.message.MessagePayload;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Positive;
@@ -25,7 +24,7 @@ public class BroadcastTestApp extends ComponentDefinition {
 		public void handle(Start event) {
 			if (triggerTestMessage) {
 				System.out.println("Triger Test Broadcast message");
-				trigger(new BEBroadcast(new BEBDeliver()), broadcastPort);
+				trigger(new BEBroadcast(new MessagePayload("TEST Message")), broadcastPort);
 			}
 		}
 	};

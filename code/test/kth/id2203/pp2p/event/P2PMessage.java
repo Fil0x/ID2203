@@ -1,17 +1,18 @@
 package kth.id2203.pp2p.event;
 
-import network.TAddress;
-import network.THeader;
-import network.TMessage;
-import se.sics.kompics.network.Transport;
 
-public class P2PMessage extends TMessage {
+import kth.id2203.message.MessagePayload;
+import se.sics.kompics.KompicsEvent;
+
+public class P2PMessage implements KompicsEvent { 
 	
-	public P2PMessage(TAddress src, TAddress dst) {
-		super(src, dst, Transport.TCP);
-	}
+	private final MessagePayload message;
 
-	public P2PMessage(THeader header) {
-		super(header);
+	public P2PMessage(MessagePayload message) {
+		this.message = message;
+	}
+	
+	public MessagePayload getMessage() {
+		return message;
 	}
 }

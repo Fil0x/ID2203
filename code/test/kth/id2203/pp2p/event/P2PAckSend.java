@@ -5,17 +5,17 @@ import kth.id2203.message.MessagePayload;
 import kth.id2203.network.TAddress;
 import se.sics.kompics.KompicsEvent;
 
-public class P2PSend implements KompicsEvent {
+public class P2PAckSend implements KompicsEvent {
 	private final TAddress to;
 	
 	private final MessagePayload message;
 	
-	public P2PSend(TAddress to, MessagePayload message) {
+	public P2PAckSend(TAddress to, MessagePayload message) {
 		this.to = to;
 		this.message = message;
 	}
 	
-	public P2PSend(TAddress to) {
+	public P2PAckSend(TAddress to) {
 		this.to = to;
 		this.message = null;
 	}

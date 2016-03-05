@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import kth.id2203.beb.event.BEBDeliver;
 import kth.id2203.beb.event.BEBroadcast;
 import kth.id2203.beb.port.BroadcastPort;
+import kth.id2203.message.MessagePayload;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Positive;
@@ -30,7 +31,7 @@ public class BebPoint extends ComponentDefinition {
 		public void handle(Start event) {
 			if (isBroadcaster) {
 				log.info("Triger Broadcast message");
-				trigger(new BEBroadcast(), broadcastPort);
+				trigger(new BEBroadcast(new MessagePayload("TEST Message")), broadcastPort);
 			}
 		}
 	};
