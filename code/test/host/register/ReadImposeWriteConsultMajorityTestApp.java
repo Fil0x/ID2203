@@ -27,6 +27,9 @@ public class ReadImposeWriteConsultMajorityTestApp extends ComponentDefinition {
 	
 	private UUID timerId;
 
+	private int writeKey = 10;
+	private int readKey = 10;
+	
 	public ReadImposeWriteConsultMajorityTestApp(Init init) {
 		System.out.println("Initiate Register Test App Reader: " + init.isReader);
 		this.isReader = init.isReader;
@@ -47,7 +50,14 @@ public class ReadImposeWriteConsultMajorityTestApp extends ComponentDefinition {
 		public void handle(Start event) {
 			if (isWriter) {
 				System.out.println("Trigger Write request ");
-				trigger(new ArWriteRequest(10, "Pradeep"), nnar);
+//				trigger(new ArWriteRequest(10, "Pradeep"), nnar);
+//				trigger(new ArWriteRequest(20, "Peiris"), nnar);
+				
+				SchedulePeriodicTimeout spt = new SchedulePeriodicTimeout(5000, 5000);
+				WriteTimeout timeout = new WriteTimeout(spt);
+				spt.setTimeoutEvent(timeout);
+				trigger(spt, timer);
+				timerId = timeout.getTimeoutId();
 			}
 			
 			if(isReader) {
@@ -60,10 +70,19 @@ public class ReadImposeWriteConsultMajorityTestApp extends ComponentDefinition {
 		}
 	};
 
-	Handler<ReaderTimeout> timeoutHandler = new Handler<ReaderTimeout>() {
+	Handler<WriteTimeout> writeTimeoutHandler = new Handler<WriteTimeout>() {
+		public void handle(WriteTimeout event) {
+			System.out.println("Trigger Write request " + writeKey);
+			trigger(new ArWriteRequest(writeKey, "Pradeep" + writeKey), nnar);
+			writeKey = writeKey + 10;
+		}
+	};
+	
+	Handler<ReaderTimeout> readTimeoutHandler = new Handler<ReaderTimeout>() {
 		public void handle(ReaderTimeout event) {
-			System.out.println("Trigger read request ");
-			trigger(new ArReadRequest(10), nnar);
+			System.out.println("Trigger read request " + readKey);
+			trigger(new ArReadRequest(readKey), nnar);
+			readKey = readKey + 10;
 		}
 	};
 	
@@ -91,11 +110,18 @@ public class ReadImposeWriteConsultMajorityTestApp extends ComponentDefinition {
 		subscribe(startHandler, control);
 		subscribe(readResponseHanlder, nnar);
 		subscribe(writeResponseHanlder, nnar);
-		subscribe(timeoutHandler, timer);
+		subscribe(readTimeoutHandler, timer);
+		subscribe(writeTimeoutHandler, timer);
 	}
 	
 	public static class ReaderTimeout extends Timeout {
 		public ReaderTimeout(SchedulePeriodicTimeout spt) {
+			super(spt);
+		}
+	}
+	
+	public static class WriteTimeout extends Timeout {
+		public WriteTimeout(SchedulePeriodicTimeout spt) {
 			super(spt);
 		}
 	}
