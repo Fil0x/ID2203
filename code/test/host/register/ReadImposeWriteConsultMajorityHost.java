@@ -17,6 +17,8 @@ import se.sics.kompics.Init;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.netty.NettyInit;
 import se.sics.kompics.network.netty.NettyNetwork;
+import se.sics.kompics.timer.Timer;
+import se.sics.kompics.timer.java.JavaTimer;
 
 public class ReadImposeWriteConsultMajorityHost extends ComponentDefinition {
 
@@ -34,8 +36,15 @@ public class ReadImposeWriteConsultMajorityHost extends ComponentDefinition {
 			connect(regsiter.getNegative(BroadcastPort.class), beb.getPositive(BroadcastPort.class));
 			connect(regsiter.getNegative(Pp2pLinkPort.class), pl.getPositive(Pp2pLinkPort.class));
 			
-			Component testapp = create(ReadImposeWriteConsultMajorityTestApp.class, new ReadImposeWriteConsultMajorityTestApp.Init(self.getPort() == 20008 ? true : false));
+			
+			boolean isWriter = self.getPort() == 20008 ? true : false;
+			boolean isReader = self.getPort() == 20005 ? true : false;
+			
+			Component timer = create(JavaTimer.class, Init.NONE);
+			
+			Component testapp = create(ReadImposeWriteConsultMajorityTestApp.class, new ReadImposeWriteConsultMajorityTestApp.Init(isReader, isWriter));
 			connect(testapp.getNegative(AtomicRegister.class), regsiter.getPositive(AtomicRegister.class));
+			connect(testapp.getNegative(Timer.class), timer.getPositive(Timer.class));
 		}
 	}
 }

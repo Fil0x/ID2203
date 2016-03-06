@@ -3,7 +3,9 @@ package kth.id2203.register;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,17 +44,22 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 	private TAddress self;
 	private Integer numNodes;
 	
+	private Map<Integer, String> keyData = new HashMap<Integer, String>();
+	
 	private List<ReadInfo> readlist;
 	private Integer ts, wr, val;
 	private Integer rid;
 	private Integer acks;
 	private boolean reading;
 	
-    private Integer readval;
+	private Integer readkey;
+    private String readval;
+    
     private Integer rr;
     private Integer maxts;
     
-	private Integer writeval;
+    private Integer writekey;
+	private String writeval;
 
 	public ReadImposeWriteConsultMajority(Init init) {
 		log.info("Initiate ReadImposeWriteConsultMajority Component");
@@ -71,10 +78,6 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 		
 	}
 
-	
-
-	
-
 	private Handler<ArReadRequest> handleReadRequest = new Handler<ArReadRequest>() {
 
 		/**
@@ -87,14 +90,14 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 		 */
 		@Override
 		public void handle(ArReadRequest event) {
-			System.out.println("R1. Handle ArReadRequest at " + self.getIp() + ":" + self.getPort());
+			log.info("Handle ArReadRequest at " + self.getIp() + ":" + self.getPort());
 
 			rid++;
 			acks = 0;
 			readlist.clear();
 			reading = true;
 
-			MessagePayload message = new MessagePayload(READ_OPT + "," + rid);
+			MessagePayload message = new MessagePayload(READ_OPT + "," + rid + "," + event.getKey());
 			trigger(new BEBroadcast(message), beb);
 
 		}
@@ -105,7 +108,7 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 
 		@Override
 		public void handle(BEBDeliver event) {
-			System.out.println("R2. Handle Beb Deliver message [" + event.getMessage().getPayload() + "] at "
+			log.info("Handle Beb Deliver message [" + event.getMessage().getPayload() + "] at "
 					+ self.getIp() + ":" + self.getPort());
 			String request = event.getMessage().getPayload();
 			if(request.contains(READ_OPT)) {
@@ -124,10 +127,12 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 		 * @param readRequest
 		 */
 		private void handleRead(TAddress src, String readRequest) {
-			System.out.println("	Handle READ Request: " + readRequest);
-			String r = readRequest.split(",")[1];
+			log.info("	Handle READ Request: " + readRequest);
+			String[] request = readRequest.split(",");
+			String r = request[1];
+			Integer key = Integer.valueOf(request[2]);
 			
-			MessagePayload message = new MessagePayload("VALUE," + r + "," + ts + "," + wr + "," + val);
+			MessagePayload message = new MessagePayload(READ_ACK + "," + r + "," + ts + "," + wr + "," + key + "," + keyData.get(key));
 			trigger(new P2PAckSend(src, message), pp2p);
 			
 		}
@@ -141,20 +146,22 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 		 * @param writeRequest
 		 */
 		private void handleWrite(TAddress src, String writeRequest) {
-			System.out.println("	Handle WRITE Request: " + writeRequest);
+			log.info("	Handle WRITE Request: " + writeRequest);
 			String[] request = writeRequest.split(",");
 			Integer r = Integer.valueOf(request[1]);
 			Integer ts1 = Integer.valueOf(request[2]);
 			Integer wr1 = Integer.valueOf(request[3]);
-			Integer v1 = Integer.valueOf(request[4]);
+			Integer k1 = Integer.valueOf(request[4]);
+			String v1 = request[5];
 			
 			if((ts1 > ts) && (wr1 > wr)) {
 				ts = ts1;
 				wr = wr1;
-				val = v1;
+//				val = v1;
+				keyData.put(k1, v1);
 			}
 			
-			MessagePayload message = new MessagePayload("ACK," + r);
+			MessagePayload message = new MessagePayload(WRITE_ACK + "," + r);
 			trigger(new P2PAckSend(src, message), pp2p);
 			
 		}
@@ -170,7 +177,6 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 			} else if(request.contains(READ_ACK)) {
 				handleReadAck(event.getFrom(), event.getMessage().getPayload());
 			}
-
 		}
 		
 		/**
@@ -186,16 +192,18 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 		 * 
 		 */
 		private void handleReadAck(TAddress src, String ack) {
-			System.out.println("R3. Hanlde Pp2p Deliver Ack message [" + ack + "] of "
+			log.info("Hanlde Pp2p Deliver Ack message [" + ack + "] of "
 					+ src.getIp() + ":" + src.getPort());
 			String[] request = ack.split(",");
 			Integer r = Integer.valueOf(request[1]);
 			Integer ts1 = Integer.valueOf(request[2]);
 			Integer wr1 = Integer.valueOf(request[3]);
-			Integer v1 = Integer.valueOf(request[4]);
+			Integer k1 = Integer.valueOf(request[4]);
+			String v1 = request[5];
+			
 
 			if(r.equals(rid)) {
-				readlist.add(new ReadInfo(ts1, wr1, v1, src.hashCode()));
+				readlist.add(new ReadInfo(ts1, wr1, k1, v1, src.hashCode()));
 				if (readlist.size() > (numNodes / 2)) {
 					Collections.sort(readlist, new Comparator<ReadInfo>() {
 						@Override
@@ -211,16 +219,17 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 					
 					ReadInfo highest = readlist.get(readlist.size() - 1);
 					rr = new Integer(highest.getWr());
-	                readval = new Integer(highest.getVal());
+					readkey = highest.getKey();
+	                readval = highest.getVal();
 	                maxts = new Integer(highest.getTs());
 	                
 	                readlist.clear();
 	                
 					if (reading) {
-						MessagePayload message = new MessagePayload(WRITE_OPT + "," + rid + "," + maxts + "," + rr + "," + readval);
+						MessagePayload message = new MessagePayload(WRITE_OPT + "," + rid + "," + maxts + "," + rr + "," + readkey + "," + readval);
 						trigger(new BEBroadcast(message), beb);
 					} else {
-						MessagePayload message = new MessagePayload(WRITE_OPT + "," + rid + "," + (maxts + 1) + "," + self.hashCode() + "," + writeval);
+						MessagePayload message = new MessagePayload(WRITE_OPT + "," + rid + "," + (maxts + 1) + "," + self.hashCode() + "," + writekey + "," + writeval);
 						trigger(new BEBroadcast(message), beb);
 					}
 				}
@@ -243,17 +252,20 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 		 * @param ack
 		 */
 		private void handleWriteAck(TAddress src, String ack) {
-			System.out.println("R4. Hanlde Pp2p Deliver Ack message [" + ack + "] of "
-					+ src.getIp() + ":" + src.getPort());
-			acks += 1;
-			if(acks > (numNodes / 2)) {
-				acks = 0;
+			Integer r = Integer.valueOf(ack.split(",")[1]);
+			if(r.equals(rid)) {
+				log.info("Hanlde Pp2p Deliver Ack message [" + ack + "] of " + src.getIp() + ":" + src.getPort());
 				
-				if(reading) {
-					reading = false;
-					trigger(new ArReadResponse(), nnar);
-				} else {
-					trigger(new ArWriteResponse(), nnar);
+				acks += 1;
+				if(acks > (numNodes / 2)) {
+					acks = 0;
+					
+					if(reading) {
+						reading = false;
+						trigger(new ArReadResponse(0, readval), nnar);
+					} else {
+						trigger(new ArWriteResponse(), nnar);
+					}
 				}
 			}
 			
@@ -273,13 +285,14 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 		 */
 		@Override
 		public void handle(ArWriteRequest event) {
-			System.out.println("W1. Handle ArWriteRequest at " + self.getIp() + ":" + self.getPort());
+			log.info("Handle ArWriteRequest at " + self.getIp() + ":" + self.getPort());
 			rid++;
+			writekey = event.getKey();
 			writeval = event.getValue();
 			acks = 0;
 			readlist.clear();
 			
-			MessagePayload message = new MessagePayload(READ_OPT + "," + rid);
+			MessagePayload message = new MessagePayload(READ_OPT + "," + rid + "," + event.getKey());
 			trigger(new BEBroadcast(message), beb);
 		}
 

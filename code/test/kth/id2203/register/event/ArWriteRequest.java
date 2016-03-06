@@ -6,9 +6,9 @@ import se.sics.kompics.KompicsEvent;
 public class ArWriteRequest implements KompicsEvent {
 
 	private final int key;
-    private final int value;
+    private final String value;
 
-    public ArWriteRequest(int key, int value) {
+    public ArWriteRequest(int key, String value) {
         this.key = key;
         this.value = value;
     }
@@ -17,7 +17,7 @@ public class ArWriteRequest implements KompicsEvent {
         return key;
     }
 
-    public int getValue() {
+    public String getValue() {
         return value;
     }
     
