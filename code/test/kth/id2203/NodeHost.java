@@ -7,16 +7,17 @@ import org.slf4j.LoggerFactory;
 
 import kth.id2203.beb.BroadcastComponent;
 import kth.id2203.beb.port.BroadcastPort;
+import kth.id2203.data.Grid;
+import kth.id2203.network.TAddress;
 import kth.id2203.pp2p.Pp2pLink;
 import kth.id2203.pp2p.port.Pp2pLinkPort;
-import network.TAddress;
 import se.sics.kompics.Channel;
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.netty.NettyInit;
 import se.sics.kompics.network.netty.NettyNetwork;
-import staticdata.Grid;
+
 
 public class NodeHost extends ComponentDefinition {
 
@@ -35,8 +36,13 @@ public class NodeHost extends ComponentDefinition {
 			Component boradcast = create(BroadcastComponent.class, new BroadcastComponent.Init(self, all));
 			connect(boradcast.getNegative(Pp2pLinkPort.class), p2pLinkForBeb.getPositive(Pp2pLinkPort.class));
 			
-			Component node = create(Node.class, new Node.Init(self));
+			
+//			Component p2pLinkForNode = create(Pp2pLink.class, new Pp2pLink.Init(self));
+//			connect(p2pLinkForNode.getNegative(Network.class), network.getPositive(Network.class), Channel.TWO_WAY);
+			
+			Component node = create(Node.class, new Node.Init(self, self.getPort() == 20008 ? true : false));
 			connect(node.getNegative(BroadcastPort.class), boradcast.getPositive(BroadcastPort.class));
+			connect(node.getNegative(Pp2pLinkPort.class), p2pLinkForBeb.getPositive(Pp2pLinkPort.class));
 
 
 		}

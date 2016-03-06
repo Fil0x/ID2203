@@ -1,9 +1,9 @@
 package host.p2p;
 
+import kth.id2203.network.TAddress;
 import kth.id2203.pp2p.event.P2PDeliver;
 import kth.id2203.pp2p.event.P2PSend;
 import kth.id2203.pp2p.port.Pp2pLinkPort;
-import network.TAddress;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Positive;

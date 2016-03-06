@@ -1,14 +1,8 @@
 package host;
 
-import java.net.InetAddress;
-import java.util.List;
-
-import host.p2p.Pp2pLinkHost;
-import kth.id2203.NodeHost;
-import network.TAddress;
+import host.register.ReadImposeWriteConsultMajorityHost;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Init;
-import staticdata.Grid;
 
 public class Spawner extends ComponentDefinition {
 
@@ -30,6 +24,8 @@ public class Spawner extends ComponentDefinition {
 //			e.printStackTrace();
 //		}
          
-		create(NodeHost.class, Init.NONE);
+//		create(NodeHost.class, Init.NONE);
+		
+		create(ReadImposeWriteConsultMajorityHost.class, Init.NONE);
 	}
 }

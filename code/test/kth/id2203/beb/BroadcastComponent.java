@@ -8,10 +8,12 @@ import org.slf4j.LoggerFactory;
 import kth.id2203.beb.event.BEBDeliver;
 import kth.id2203.beb.event.BEBroadcast;
 import kth.id2203.beb.port.BroadcastPort;
+import kth.id2203.network.TAddress;
+import kth.id2203.network.TMessage;
 import kth.id2203.pp2p.event.P2PDeliver;
 import kth.id2203.pp2p.event.P2PSend;
 import kth.id2203.pp2p.port.Pp2pLinkPort;
-import network.TAddress;
+import se.sics.kompics.ClassMatchedHandler;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Negative;
@@ -42,23 +44,24 @@ public class BroadcastComponent extends ComponentDefinition {
 		public void handle(BEBroadcast event) {
 			log.info("BEBroadcast BEBMessage from " + self.getIp() + ":" + self.getPort());
 			for (TAddress dest : all) {
-				trigger(new P2PSend(dest), p2pLinkPort);
+				trigger(new P2PSend(dest, event.getMessage()), p2pLinkPort);
 			}
 		}
 
 	};
-
+    
 	private Handler<P2PDeliver> handleP2PMessage = new Handler<P2PDeliver>() {
 
 		@Override
 		public void handle(P2PDeliver event) {
-			log.info("BEBDeliver broadcast message at " + self.getIp() + ":" + self.getPort());
-			trigger(new BEBDeliver(event.getFrom()), beb);
+			log.info("BEBDeliver broadcast message [" + event.getMessage().getPayload() + "] at " + self.getIp() + ":" + self.getPort());
+			trigger(new BEBDeliver(event.getFrom(), event.getMessage()), beb);
+
 		}
 
 	};
 
-
+    
 	public static class Init extends se.sics.kompics.Init<BroadcastComponent> {
 		public final TAddress self;
 		public List<TAddress> all;

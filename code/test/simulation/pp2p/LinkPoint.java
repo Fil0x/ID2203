@@ -6,10 +6,10 @@ import java.net.UnknownHostException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import kth.id2203.network.TAddress;
 import kth.id2203.pp2p.event.P2PDeliver;
 import kth.id2203.pp2p.event.P2PSend;
 import kth.id2203.pp2p.port.Pp2pLinkPort;
-import network.TAddress;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Positive;
 import se.sics.kompics.Start;

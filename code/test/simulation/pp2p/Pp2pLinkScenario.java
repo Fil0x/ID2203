@@ -5,7 +5,7 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-import network.TAddress;
+import kth.id2203.network.TAddress;
 import se.sics.kompics.Init;
 import se.sics.kompics.network.Address;
 import se.sics.kompics.simulator.SimulationScenario;
