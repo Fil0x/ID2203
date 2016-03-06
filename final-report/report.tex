@@ -23,8 +23,8 @@
 \section{Introduction}
 
 The project's goal was to realize a key value store in \textit{Kompics}. The most important properties are that it has to be distributed, replicated and comply to linearizable semantics. We were given many freedoms but we chose an easy and as little complicated as it can be implementation. \\
-Our model is initially bootstrapped with a ,configurable yet, static set of nodes that comprise a group with a replication factor $\delta$. Each group has a segment of the key space assigned to them and a hashing function is responsible for bringing an arbitrary key value between our boundaries. \\
-Finally, the data is protected from inconsistencies by employing a \textit{Read-Impose Write-Consult Majority} to bring the \textit{Atomic Register} model into our system since we can't trust our \textit{eventually perfect failure detector} so much.
+Our model is initially bootstrapped with a ,configurable yet, static set of nodes that comprise a group with a replication factor $\delta$. Each replication group has a segment of the key space assigned to them and a hashing function is responsible for bringing an arbitrary key value between the boundaries. \\
+Finally, we support \textit{GET} and \textit{PUT} operations on the stored data. They are protected from inconsistencies(linearizable) by employing a \textit{Read-Impose Write-Consult Majority} algorithm to bring the \textit{(N,N)Atomic Register} model into our system since we can't trust our \textit{eventually perfect failure detector} so much.
 
 \section{Design Overview}
 
@@ -49,21 +49,63 @@ During our time designing and implementing the system we had a myriad of decisio
 	\item Replication algorithm( (N,N) Atomic Register )
 \end{itemize}
 
+Some properties have to be taken into account when deciding what algorithms to use and how to modify them according to the environment:
+\begin{itemize}
+	\item \textit{Network topology}: It plays a crucial role on the optimizations if its either LAN, WAN etc.
+	\item \textit{Flow control}: Practical systems ask for practical solutions for example not flooding the destination with messages.
+	\item \textit{Heterogenity}: Not all nodes are born equal, as they might be running on faster processors, have more memory etc.
+\end{itemize}
+
 \subsection{Perfect Point to Point Link}
 
-\textit{The report should not be too long ($\approx$ 2-3 pages).}
+All the node communication, e.g. message exchanging, is achieved by using a perfect point to point link abstraction. Since our system doesn't support any kind of reconfiguration we are working in the \textit{crash-stop} model. Additionally, we make the assumption that no messages are lost over the network as the lower levels of the operating system can handle them e.g. when being sent over \textit{TCP} by adding reliability and retransmission among others. \par 
+
+The choice of this protocol was clear as it can support some guarantees for delivery but it doesn't come without its drawbacks. The main one is that \textit{TCP} makes assumptions about the state of the delivery buffer and combined with congestion control there might be cases of false positive crashes. Such assumptions add synchrony in an asynchronous system or in our case, partially synchronous. But as always its a matter of what algorithms the system uses and as such we have to use the appropriate abstractions. \par 
+
+Below we see the properties that our implementation has to abide by:
+\begin{itemize}
+	\item \textbf{Reliable Delivery}: If a correct process p send a message m to correct process q then q eventually delivers m.(\textit{liveness})
+	\item \textbf{No Duplication}: No message is delivered by a process more than once.(\textit{safety})
+	\item \textbf{No Creation}: If some process q delivers a message m with sender p, then m was previously sent by process p to q.(\textit{safety})
+\end{itemize}
 
 \subsection{Best Effort Broadcast}
 
-\textit{The report should not be too long ($\approx$ 2-3 pages).}
+As pictured above our system nodes comprise one group with smaller ones to serve as replicas. The broadcasting happens only within the members of the smaller groups as sending a message to the rest of the replica groups is not useful in any shape or form. The chosen abstraction guarantees that all the correct processes will deliver as long as the sender is correct by using \textit{pp2p}. \par
+
+Our system does not handle crashes but only detects them. This fact lead us to the use of \textit{BEB} abstraction since there is no difference compared to another abstraction that can handle byzantine faults in our case. It is built on top of the \textit{pp2p} component and for each destination it issues a \textit{$\textless$pp2p|Send$\textgreater$}. \par
+
+The properties that \textit{BEB} offers and we have to verify are:
+
+\begin{itemize}
+	\item \textbf{Validity}: If a correct process p broadcast a message m then all correct processes eventually delivers m.
+	\item \textbf{No Duplication}, from \textit{pp2p}: No message is delivered more than once.
+	\item \textbf{No Creation}, from \textit{pp2p}: If some process delivers a message m with sender p, then m was previously broadcast by process p to q.
+\end{itemize}
+
 
 \subsection{(N,N) Atomic Registry}
 
-\textit{The report should not be too long ($\approx$ 2-3 pages).}
+All the possible executions must be \textit{linearizable}. The problem we had to solve is what will happen when more than one clients send a request(\textit{GET or PUT}) to the stored data at a node level as well as at a group replication level. The only registry out of the available ones(safe, regular, atomic), the one we chose was the only one able to provide linearization semantics. \par
+
+The replica group contains a certain number of keys(configurable in our system) but the algorithm works for one register. Due to this, we modified it to work with the hash dictionary of keys and their values by piggybacking the contextual data key to all the messages. \par
+
+Formally, a linearizable execution guarantees:
+\begin{itemize}
+	\item Every read returns the last value written
+	\item for any two operations x and y, if x precedes y in the execution then x also appears before y in the linearization.
+\end{itemize}
+
+The properties of \textit{NNAR} are the following:
+\begin{itemize}
+	\item \textit{Atomicity}: Every execution of the register is linearizable. Every failed operation appears as if it has completed or never been invoked at all. An operation appears to have completed in an instant between its invocation and completion.
+	\item \textit{Termination}: If a correct process invokes an operation, then it eventually completes.
+	
+\end{itemize}
 
 \subsection{Failure Detector}
 
-\textit{The report should not be too long ($\approx$ 2-3 pages).}
+We used an eventually perfect failure detector since a perfect failure detector is an impractical, nearly impossible, solution. 
 
 \subsection{Reconfiguration}
 \textit{The report should not be too long ($\approx$ 2-3 pages).}
@@ -71,16 +113,6 @@ During our time designing and implementing the system we had a myriad of decisio
 \section{System Simulations and Scenarios}
 
 \subsection{Perfect Point to Point Link}
-Perfect Point to Point Link is the base abstraction in our System Model. The properties of Perfect Point to Point Link are;
- 
-\begin{itemize}
-	\item Reliable Delivery: If a correct process p send a message m to correct process q then q eventually delivers m.
-	
-	\item No Duplication: No message is delivered by a process more than once.
-	
-	\item No Creation: If some process q delivers a message m with sender p, then m was previously sent by process p to q.
-
-\end{itemize}
 
 The Reliable Delivery property is simulated in scenario \textit{Pp2pLinkScenario.java}. It let process instance of \textit{LinkPoint.java} to send a constant number of messages (1000) to another instance of \textit{LinkPoint.java}, and \textit{Pp2pSimulationObserver.java} listens on number of messages received at second instnce, and captures in a 
 \textit{GlobalView}. GlobalView terminate and report to Simulation at sucessfull receival of all messages.
@@ -89,20 +121,6 @@ Although this can be even proven with the standard trasport-level protocol used 
 So, As our Perfect Point to Point Link abstraction is build on top of TCP, No Duplication and No creation of messages are also satisfied.
 
 \subsection{Best Effort Broadcast}
-We have \textit{Best Effort Broadcast} component build on top of the 
-Reliable Point to Point Link. That is, when the Beb Component broadcast a message, it loops through all the processes in the list and use Point to Point Send on its underlyine Pp2p Component.
-The properties should be satisfied according the abstraction are:
-
-\begin{itemize}
-	
-	\item Validity: If a correct process p broadcast a message m then all correct processes eventually delivers m.
-		
-	\item No Duplication: No message is delivered more than once.
-		
-	\item No Creation: If some process delivers a message m with sender p, then m was previously broadcast by process p to q.
-
-\textit{No Duplication} and \textit{No Creation} properties are inherent from the underlyine module of 	\textit{Perfect Point to Point Link}.
-\end{itemize}
 
 The Validy property of the component is simulated and verified in \textit{BebScenario.java}. Within \textit{BebScenario.java}, it creates a constant number of (1000) of \textit{BebPointHost.java} instances as the receivers and let another instance of \textit{BebPointHost.java} to broadcast a message. \textit{BebSimulationObserver.java} simply verifies that all receviers are received the broadcast message.
 
