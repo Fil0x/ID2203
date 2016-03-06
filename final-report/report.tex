@@ -73,7 +73,7 @@ Below we see the properties that our implementation has to abide by:
 
 As pictured above our system nodes comprise one group with smaller ones to serve as replicas. The broadcasting happens only within the members of the smaller groups as sending a message to the rest of the replica groups is not useful in any shape or form. The chosen abstraction guarantees that all the correct processes will deliver as long as the sender is correct by using \textit{pp2p}. \par
 
-Our system does not handle crashes but only detects them. This fact lead us to the use of \textit{BEB} abstraction since there is no difference compared to another abstraction that can handle byzantine faults in our case. It is built on top of the \textit{pp2p} component and for each destination it issues a \textit{$\textless$pp2p|Send$\textgreater$}. \par
+Our system does not handle crashes but only detects them. This fact led us to the use of \textit{BEB} abstraction since there is no difference compared to another abstraction that can handle byzantine faults in our case. It is built on top of the \textit{pp2p} component and for each destination it issues a \textit{$\textless$pp2p|Send$\textgreater$}. \par
 
 The properties that \textit{BEB} offers and we have to verify are:
 
@@ -105,10 +105,23 @@ The properties of \textit{NNAR} are the following:
 
 \subsection{Failure Detector}
 
-We used an eventually perfect failure detector since a perfect failure detector is an impractical, nearly impossible, solution. 
+Our working environment , as previously stated, is a partially synchronous system so the best way to incorporate timing assumptions is by using an \textit{eventually perfect failure detector} or $\diamond$P. At this point we found ourselves at a fork, choose a small delay to quickly react to potential failures and in time adapt to the network or choose a higher value to \textit{suspect} with a better degree of confidence but maybe detect the failure late. \par
+
+It turns out that without implementing \textit{reconfiguration} it does not really matter if we detect a crashed node as soon as possible or well after its death. In the case we were realizing it, the importance of the delay timeout and its initial value might be crucial depending on the application constraints.
+
+The provided properties of this abstractions are:
+\begin{itemize}
+	\item \textbf{Strong completeness}: Eventually, all the crashed processes will be suspected by every correct process. It is satisfied if we exclude the suspected process on timeout since it will stop responding to the \textit{heartbeats}.
+	\item \textbf{Eventual strong accuracy}: Eventually, no correct node is suspected by any correct process. After the point that the system becomes synchronous, eventually all suspected correct processes will be restored and never suspected again with the increased delay timeout.
+\end{itemize}
+
+It is clear that each node cares about only its replication group and consequently $\diamond$P sends heartbeats only to the replicas. 
 
 \subsection{Reconfiguration}
-\textit{The report should not be too long ($\approx$ 2-3 pages).}
+
+Despite not implementing any kind of crash tolerance and node addition, we decided to write down the design choices that could have gone into a theoretical system. As a reminder, the nodes are connected with a fully networked mesh(\textit{group membership service}) and comprise a number of smaller replication groups each one responsible for a different key space. \par
+
+
 
 \section{System Simulations and Scenarios}
 
