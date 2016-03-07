@@ -34,7 +34,10 @@ The following figure depicts the overall design of the system.
 {\centering\includegraphics[scale = 0.5]{./images/design_overview.png}\par}
 
 \subsection{Node Topology}
+
 {\centering\includegraphics[scale = 0.6]{./images/node_setup.png}\par}
+
+Within each replica group there is stored a subset of the key range. Assume that the maximum key value is $x$ and there are $n$ groups. This means that every replication group is responsible for $\frac{x}{n}$ keys. When a random node receives a \textit{GET or PUT}, it forwards the message via \textit{pp2p} to a random node of that replication group, since all this is a priori knowledge. \par
 
 \section{System Abstraction and Implementation}
 
