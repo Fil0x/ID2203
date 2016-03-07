@@ -16,15 +16,15 @@ import se.sics.kompics.timer.SchedulePeriodicTimeout;
 import se.sics.kompics.timer.Timeout;
 import se.sics.kompics.timer.Timer;
 
-public class SimpleRegisterSimulationObserver extends ComponentDefinition {
-	private static final Logger log = LoggerFactory.getLogger(SimpleRegisterSimulationObserver.class);
+public class SimpleReadWriteObserver extends ComponentDefinition {
+	private static final Logger log = LoggerFactory.getLogger(SimpleReadWriteObserver.class);
 	
 	Positive<Timer> timer = requires(Timer.class);
     Positive<Network> network = requires(Network.class);
     
     private UUID timerId;
     
-    public SimpleRegisterSimulationObserver() {
+    public SimpleReadWriteObserver() {
     	subscribe(handleStart, control);
         subscribe(handleCheck, timer);
     }
@@ -47,7 +47,7 @@ public class SimpleRegisterSimulationObserver extends ComponentDefinition {
             GlobalView gv = config().getValue("simulation.globalview", GlobalView.class);
 
             if(gv.getValue("simulation.register.write_response_received", Boolean.class) == true  &&
-            		gv.getValue("simulation.register.read_response_value", String.class).equals(SimpleRegistryScenario.DATA_VALUE) ) {
+            		gv.getValue("simulation.register.read_response_value", String.class).equals(SimpleReadWriteScenario.DATA_VALUE) ) {
             	 log.info("Terminating simulation as the write response and read response value received");
             	 gv.terminate();
             }

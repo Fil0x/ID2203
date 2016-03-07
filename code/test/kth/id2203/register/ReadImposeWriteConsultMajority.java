@@ -162,6 +162,7 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 			Integer key = Integer.valueOf(request[2]);
 			
 			Data data;
+			
 			if(keyData.containsKey(key)) {
 				data = keyData.get(key);
 			} else {
@@ -170,7 +171,7 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 			}
 			
 			MessagePayload message = new MessagePayload(READ_ACK + "," + r + "," + data.getTs() + "," + data.getWr() + "," + key + "," + data.getVal());
-			log.info("R4/W4: Send Ack [" + message.getPayload() + "] from " + self.getIp() + self.getPort());
+			log.info("R4/W4: Send Ack [" + message.getPayload() + "] from " + self.getIp() + ":"+ self.getPort());
 			trigger(new P2PAckSend(src, message), pp2p);
 			
 		}
@@ -193,7 +194,7 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 			String v1 = request[5];
 			
 			Data keyFlag = keyData.get(k1);
-			if((ts1 > keyFlag.getTs()) && (wr1 > keyFlag.getWr())) {
+			if((ts1 > keyFlag.getTs()) && (wr1 >= keyFlag.getWr())) {
 				keyFlag.setTs(ts1);
 				keyFlag.setWr(wr1);
 				keyFlag.setVal(v1);
@@ -344,7 +345,7 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 			
 //			rid++;
 			if(rid.containsKey(event.getKey())) {
-				rid.put(event.getKey(), (rid.get(event.getKey() + 1)));
+				rid.put(event.getKey(), (rid.get(event.getKey()) + 1));
 			} else {
 				rid.put(event.getKey(), 1);
 			}

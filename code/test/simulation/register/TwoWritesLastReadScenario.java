@@ -19,14 +19,15 @@ import se.sics.kompics.simulator.events.system.StartNodeEvent;
 import se.sics.kompics.simulator.run.LauncherComp;
 import se.sics.kompics.simulator.util.GlobalView;
 
-public class SimpleRegistryScenario {
+public class TwoWritesLastReadScenario {
 
-	private static final int NUM_NODES = 10;
-	private static final int WRITER_ID = 1;
-	private static final int READER_ID = 10;
+	public static final int NUM_NODES = 10;
+	public static final int WRITER_ID = 1;
+	public static final int READER_ID = 10;
 	
 	public static final int DATA_KEY = 100;
 	public static final String DATA_VALUE = "DATA_VALUE_OF_100";
+	public static final String LAST_DATA_VALUE = "DATA_VALUE_OF_100_MODIFIED";
 	
 	static Operation setupOp = new Operation<SetupEvent>() {
 		@Override
@@ -34,8 +35,10 @@ public class SimpleRegistryScenario {
 			return new SetupEvent() {
 				@Override
 				public void setupGlobalView(GlobalView gv) {
-					gv.setValue("simulation.register.write_response_received", false);
-					gv.setValue("simulation.register.read_response_value", "NA");
+					gv.setValue("simulation.register.type", "2WRITES_LAST_READ");
+					gv.setValue("simulation.register.read_last_write", true);
+					gv.setValue("simulation.register.readers_resopnse_count", 0);
+					
 				}
 			};
 		}
@@ -69,7 +72,7 @@ public class SimpleRegistryScenario {
 
 				@Override
 				public Class getComponentDefinition() {
-					return SimpleRegisterSimulationObserver.class;
+					return TwoWritesLastReadObserver.class;
 				}
 
 				@Override
@@ -121,10 +124,10 @@ public class SimpleRegistryScenario {
 		
 	};
 	
-	static Operation startWriteClient = new Operation<StartNodeEvent>() {
+	static Operation1 startWriteClient = new Operation1<StartNodeEvent, Integer>() {
 
 		@Override
-		public StartNodeEvent generate() {
+		public StartNodeEvent generate(final Integer writeRound) {
 			return new StartNodeEvent() {
 				TAddress selfAdr;
 				TAddress dest;
@@ -144,7 +147,7 @@ public class SimpleRegistryScenario {
 
 				@Override
 				public Init getComponentInit() {
-					return new WriteClient.Init(selfAdr, dest, DATA_KEY, DATA_VALUE);
+					return new WriteClient.Init(selfAdr, dest, DATA_KEY, writeRound.equals(1) ? DATA_VALUE : LAST_DATA_VALUE);
 				}
 
 				@Override
@@ -158,17 +161,17 @@ public class SimpleRegistryScenario {
 	};
 	
 	
-	static Operation startReadClient = new Operation<StartNodeEvent>() {
+	static Operation1 startReadClient = new Operation1<StartNodeEvent, Integer>() {
 
 		@Override
-		public StartNodeEvent generate() {
+		public StartNodeEvent generate(final Integer self) {
 			return new StartNodeEvent() {
 				TAddress selfAdr;
 				TAddress dest;
 				{
 					try {
 						selfAdr = new TAddress(InetAddress.getByName("10.19.0.99"), 10000);
-						dest = new TAddress(InetAddress.getByName("10.19.0." + READER_ID), 10000);
+						dest = new TAddress(InetAddress.getByName("10.19.0." + self), 10000);
 					} catch (UnknownHostException ex) {
 						throw new RuntimeException(ex);
 					}
@@ -216,26 +219,42 @@ public class SimpleRegistryScenario {
 					}
 				};
 				
-				StochasticProcess startWriteClients = new StochasticProcess() {
+				StochasticProcess startWriteClient1 = new StochasticProcess() {
 					{
 						eventInterArrivalTime(constant(1000));
-						raise(1, startWriteClient);
+						raise(1, startWriteClient, new BasicIntSequentialDistribution(1));
 					}
 				};
 				
-				StochasticProcess startReadClients = new StochasticProcess() {
+				StochasticProcess startReadClients1 = new StochasticProcess() {
 					{
 						eventInterArrivalTime(constant(1000));
-						raise(1, startReadClient);
+						raise(NUM_NODES, startReadClient, new BasicIntSequentialDistribution(1));
 					}
 				};
-
+				
+				StochasticProcess startWriteClient2 = new StochasticProcess() {
+					{
+						eventInterArrivalTime(constant(1000));
+						raise(1, startWriteClient, new BasicIntSequentialDistribution(2));
+					}
+				};
+				
+				StochasticProcess startReadClients2 = new StochasticProcess() {
+					{
+						eventInterArrivalTime(constant(1000));
+						raise(NUM_NODES, startReadClient, new BasicIntSequentialDistribution(1));
+					}
+				};
+				
 				setup.start();
 				observer.startAfterTerminationOf(0, setup);
 				startRegisters.startAfterTerminationOf(1000, observer);
-				startWriteClients.startAfterTerminationOf(1000, startRegisters);
-				startReadClients.startAfterTerminationOf(1000, startWriteClients);
-				terminateAfterTerminationOf(100000, startReadClients);
+				startWriteClient1.startAfterTerminationOf(1000, startRegisters);
+				startReadClients1.startAfterTerminationOf(1000, startWriteClient1);	
+				startWriteClient2.startAfterTerminationOf(1000, startReadClients1);
+				startReadClients2.startAfterTerminationOf(1000, startWriteClient2);
+				terminateAfterTerminationOf(100000, startReadClients2);
 			}
 		};
 		return scenario;
