@@ -124,20 +124,57 @@ Despite not implementing any kind of crash tolerance and node addition, we decid
 Starting from the base abstractions, \textit{pp2p} and \textit{beb} remain the same as they are here only to help us communicate although having the \textit{agreement} property in our broadcasting abstraction would be desirable. 
 
 \section{System Simulations and Scenarios}
+Simulation and testing of the system is carried out at each component level, starting from base of \textit{Perfect Point to Point Link} upto \textit{(N,N) Atomic Registry} components.
+There are seprate Simulation Scenarious for each components,(see \textit{test/simulation} in source code bundle), that covers properties of underlying distribution abstraction.
 
 \subsection{Perfect Point to Point Link}
 
-The Reliable Delivery property is simulated in scenario \textit{Pp2pLinkScenario.java}. It let process instance of \textit{LinkPoint.java} to send a constant number of messages (1000) to another instance of \textit{LinkPoint.java}, and \textit{Pp2pSimulationObserver.java} listens on number of messages received at second instnce, and captures in a 
+As it is explained in section 3.1, the properties of \textit{Perfect Point to Point Link} to be verified are Reliability, No Duplication and No Creation.
+
+The Reliable Delivery property is simulated in scenario \textit{pp2p/Pp2pLinkScenario.java}. It let a process instance of \textit{LinkPoint.java} to send a constant number of messages (1000) to another instance of \textit{LinkPoint.java}, and \textit{Pp2pSimulationObserver.java} listens on number of messages received at second instnce, and captures in a 
 \textit{GlobalView}. GlobalView terminate and report to Simulation at successful receival of all messages.
 
-Although this can be even proven with the standard trasport-level protocol used in the Network model, which is TCP. 
-So, As our Perfect Point to Point Link abstraction is build on top of TCP, No Duplication and No creation of messages are also satisfied.
+Also this can be even proven with the standard trasport-level protocol used in the Network Layer, which is TCP. In same way No Duplication and No creation of messages are also satisfied with properties of TCP.
 
 \subsection{Best Effort Broadcast}
 
-The Validy property of the component is simulated and verified in \textit{BebScenario.java}. Within \textit{BebScenario.java}, it creates a constant number of (1000) of \textit{BebPointHost.java} instances as the receivers and let another instance of \textit{BebPointHost.java} to broadcast a message. \textit{BebSimulationObserver.java} simply verifies that all receviers are received the broadcast message.
+The properties of \textit{Best Effort Broadcast} to be verfied are Validity, No Duplication and No Creation.
 
-Best-effort broadcast only ensures delivery amoung all correct processes, if the sender does not fail. We have the simulation [TODO] verifiy this.
+The Validy property of the component is simulated and verified in \textit{BebScenario.java}. Within \textit{beb/BebScenario.java}, it creates a constant number of (1000) of \textit{beb/BebPointHost.java} instances as the receivers and let another instance of \textit{beb/BebPointHost.java} to broadcast a message. \textit{BebSimulationObserver.java} simply verifies that all receviers are received with the broadcast message. No Duplication and No Creation properties are derived from the underlyine \textit{Perfect Point to Point Link} component.
+
+\textit{Best Effort Broadcast} ensures only delivery of messages amoung correct processes. The simulation [TODO] verifiy this.
+
+\subsection{(N,N) Atomic Registry}
+
+As it is explained in section 3.3, the properties of \textit{(N,N) Atomic Registry (NNAR)} are Atomicity and Termination. \textit{NNAR} is a strict generalization of \textit{(1,N) Atomic Registry (ONAR)}, as the every execution of \textit{ONAR} is also an execution of \textit{NNAR}. Therefore, \textit{Ordering} property of \textit{ONAR} should be verified in \textit{NNAR} with a single writer.
+
+The simulation scenario in \textit{register/SimpleReadWriteScenario.java} simply verify the termincation of Read/Write operation. Also the simulation \textit{register/WriteAfterReadAllScenario.java} further verify after a write operation, eventually all Reader processors received the written value each registry node.
+
+The scenario \textit{register/TwoWritesLastReadScenario.java} covers the following execution.
+
+{\centering\includegraphics[scale = 0.5]{./images/2writers_read_last.png}\par}
+
+\textit{register/TwoWritesLastReadObserver.java} verifies that last read always return the last written value. That is, it prevents old value being read, which covers \textit{Ordering} property of \textit{ONAR}.
+
+The scenario (TODO) covers the following execution. The lineriazability is captured in (TODO) Observer and verify the execution.
+
+{\centering\includegraphics[scale = 0.5]{./images/mwriters_read.png}\par}
+
+
+(TODO, concurrent write/read, should return last write, but follows the last read value)
+
+{\centering\includegraphics[scale = 0.5]{./images/concurent_read_write.png}\par}
+
+{\centering\includegraphics[scale = 0.5]{./images/concurent_read_write2.png}\par}
+
+
+(TODO, Failed writers appear as never invoked or completed)
+{\centering\includegraphics[scale = 0.5]{./images/failed_writer.png}\par}
+
+Our NNAR is improved to work with value of hash dictionary. Therefore, it should allow Read/Write on multiple key values simultenously, it should not block the Read or Write operation with low rid.
+
+{\centering\includegraphics[scale = 0.5]{./images/mkey_writes.png}\par}
+
 
 \section{Conclusions}
 
