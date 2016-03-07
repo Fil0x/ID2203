@@ -3,6 +3,9 @@ package components;
 import domain.ReplicationGroup;
 import client.events.GetRequest;
 import client.events.PutRequest;
+import epfd.event.Restore;
+import epfd.event.Suspect;
+import epfd.port.EventuallyPerfectFailureDetector;
 import network.TAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +35,7 @@ public class Node extends ComponentDefinition {
 
     Positive<AtomicRegister> nnar = requires(AtomicRegister.class);
     Positive<PerfectPointToPointLink> pp2p = requires(PerfectPointToPointLink.class);
+    Positive<EventuallyPerfectFailureDetector> epfd = requires(EventuallyPerfectFailureDetector.class);
 
     public Node(Init init) {
         this.self = init.self;
@@ -109,6 +113,20 @@ public class Node extends ComponentDefinition {
         }
     };
 
+    Handler<Suspect> suspectHandler = new Handler<Suspect>() {
+        @Override
+        public void handle(Suspect suspect) {
+            LOG.info("Process suspected :" + suspect.getSource());
+        }
+    };
+
+    Handler<Restore> restoreHandler = new Handler<Restore>() {
+        @Override
+        public void handle(Restore restore) {
+            LOG.info("Process restored :" + restore.getSource());
+        }
+    };
+
     {
         subscribe(startHandler, control);
         subscribe(readResponse, nnar);
@@ -116,6 +134,8 @@ public class Node extends ComponentDefinition {
         subscribe(pp2pDeliver, pp2p);
         subscribe(getRequest, pp2p);
         subscribe(putRequest, pp2p);
+        subscribe(suspectHandler, epfd);
+        subscribe(restoreHandler, epfd);
     }
 
     public static class Init extends se.sics.kompics.Init<Node> {

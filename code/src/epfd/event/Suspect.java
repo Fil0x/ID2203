@@ -1,4 +1,4 @@
-package epfd.port;
+package epfd.event;
 
 import network.TAddress;
 import se.sics.kompics.KompicsEvent;

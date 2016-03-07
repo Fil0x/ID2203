@@ -30,9 +30,7 @@ public class PayloadSerializer implements Serializer {
 
     @Override
     public void toBinary(Object o, ByteBuf buf) {
-        LOG.info("Serializing...");
     	if(o instanceof BEBMessage) {
-            LOG.info("...a BEBMessage");
         	BEBMessage r = (BEBMessage) o;
             byte[] event = SerializationUtils.serialize(r.getDeliverEvent());
 
@@ -44,16 +42,12 @@ public class PayloadSerializer implements Serializer {
     	
         else if(o instanceof Pp2pMessage) {
         	Pp2pMessage r = (Pp2pMessage) o;
-            LOG.info("...a Pp2pMessage with type:" + r.getDeliverEvent().getType());
             byte[] event = SerializationUtils.serialize(r.getDeliverEvent());
             buf.writeByte(Grid.P2P);
-            LOG.info((""+ (r.getDeliverEvent().getType() == Grid.PUTREQ)));
             if(r.getDeliverEvent().getType() == Grid.GETREQ) {
-                LOG.info("...which contains a GET request...");
                 buf.writeByte(Grid.GETREQ);
             }
             else if(r.getDeliverEvent().getType() == Grid.PUTREQ) {
-                LOG.info("...which contains  a PUT request...");
                 buf.writeByte(Grid.PUTREQ);
             }
             Serializers.toBinary(r.header, buf);

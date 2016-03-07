@@ -3,6 +3,8 @@ package components;
 
 import beb.component.BroadcastComponent;
 import beb.port.BroadcastPort;
+import epfd.component.Epfd;
+import epfd.port.EventuallyPerfectFailureDetector;
 import network.TAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,8 @@ import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.netty.NettyInit;
 import se.sics.kompics.network.netty.NettyNetwork;
+import se.sics.kompics.timer.Timer;
+import se.sics.kompics.timer.java.JavaTimer;
 import staticdata.Grid;
 
 import java.util.List;
@@ -30,6 +34,8 @@ public class ComponentHost extends ComponentDefinition {
         LOG.info("Initializing: " + init.toString());
 
         Component node;
+        Component epfd = create(Epfd.class, new Epfd.Init(init.self, allNodes, 2000, 500));
+        Component time = create(JavaTimer.class, Init.NONE);
         Component nnar = create(ReadImposeWriteConsultMajority.class, new ReadImposeWriteConsultMajority.Init(init.self, allNodes));
         Component beb = create(BroadcastComponent.class, new BroadcastComponent.Init(init.self, allNodes));
         Component pp2p = create(Pp2pLink.class, new Pp2pLink.Init(init.self, allNodes));
@@ -42,9 +48,13 @@ public class ComponentHost extends ComponentDefinition {
 
         connect(node.getNegative(AtomicRegister.class), nnar.getPositive(AtomicRegister.class), Channel.TWO_WAY);
         connect(node.getNegative(PerfectPointToPointLink.class), pp2p.getPositive(PerfectPointToPointLink.class), Channel.TWO_WAY);
+        connect(node.getNegative(EventuallyPerfectFailureDetector.class), epfd.getPositive(EventuallyPerfectFailureDetector.class), Channel.TWO_WAY);
 
         connect(nnar.getNegative(BroadcastPort.class), beb.getPositive(BroadcastPort.class), Channel.TWO_WAY);
         connect(nnar.getNegative(PerfectPointToPointLink.class), pp2p.getPositive(PerfectPointToPointLink.class), Channel.TWO_WAY);
+
+        connect(epfd.getNegative(Timer.class), time.getPositive(Timer.class), Channel.TWO_WAY);
+        connect(epfd.getNegative(PerfectPointToPointLink.class), pp2p.getPositive(PerfectPointToPointLink.class), Channel.TWO_WAY);
 
         connect(beb.getNegative(Network.class), network.getPositive(Network.class), Channel.TWO_WAY);
 
