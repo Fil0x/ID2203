@@ -22,7 +22,7 @@
 
 \section{Introduction}
 
-The project's goal was to realize a key value store in \textit{Kompics}. The most important properties are that it has to be distributed, replicated and comply to linearizable semantics. We were given many freedoms but we chose an easy and as little complicated as it can be implementation. \\
+The project's goal was to realize a key value store in \textit{Kompics} framework. The most important properties are that it has to be distributed, replicated and comply to linearizable semantics. We were given many freedoms but we chose an easy and as little complicated as it can be implementation. \\
 Our model is initially bootstrapped with a ,configurable yet, static set of nodes that comprise a group with a replication factor $\delta$. Each replication group has a segment of the key space assigned to them and a hashing function is responsible for bringing an arbitrary key value between the boundaries. \\
 Finally, we support \textit{GET} and \textit{PUT} operations on the stored data. They are protected from inconsistencies(linearizable) by employing a \textit{Read-Impose Write-Consult Majority} algorithm to bring the \textit{(N,N)Atomic Register} model into our system since we can't trust our \textit{eventually perfect failure detector} so much. Essentially we have \textit{fail-noisy} semantics but it boils down to \textit{fail-silent} since we do not take into account the information from the \textit{epfd}.
 
@@ -41,15 +41,15 @@ The following figure depicts the overall design of the system.
 During our time designing and implementing the system we had a myriad of decisions to make and to motivate the `why`.
 
 \begin{itemize}
-	\item Networking protocol(TCP)
-	\item Bootstrapping
+	\item Networking protocol(TCP or UDP)
+	\item Bootstrapping and mesh initialization
 	\item Group membership(Static)
 	\item Failure detector($\diamond$P)
 	\item Routing protocol(fully connected mesh)
 	\item Replication algorithm( (N,N) Atomic Register )
 \end{itemize}
 
-Some properties have to be taken into account when deciding what algorithms to use and how to modify them according to the environment:
+Some properties have to be taken into account when deciding what algorithms to use and how to modify them according to our environment:
 \begin{itemize}
 	\item \textit{Network topology}: It plays a crucial role on the optimizations if its either LAN, WAN etc.
 	\item \textit{Flow control}: Practical systems ask for practical solutions for example not flooding the destination with messages.
@@ -73,7 +73,7 @@ Below we see the properties that our implementation has to abide by:
 
 As pictured above our system nodes comprise one group with smaller ones to serve as replicas. The broadcasting happens only within the members of the smaller groups as sending a message to the rest of the replica groups is not useful in any shape or form. The chosen abstraction guarantees that all the correct processes will deliver as long as the sender is correct by using \textit{pp2p}. \par
 
-Our system does not handle crashes but only detects them. This fact led us to the use of \textit{BEB} abstraction since there is no difference compared to another abstraction that can handle byzantine faults in our case. It is built on top of the \textit{pp2p} component and for each destination it issues a \textit{$\textless$pp2p|Send$\textgreater$}. \par
+Our system does not handle crashes but only detects them. This fact led us to the use of \textit{BEB} abstraction since there is no difference compared to another abstraction that can handle byzantine faults in our case. It is built on top of the \textit{pp2p} component and for each destination it issues a \textit{$\textless$pp2p|Send$\textgreater$} and expects \textit{$\textless$pp2p|Deliver$\textgreater$}. \par
 
 The properties that \textit{BEB} offers and we have to verify are:
 
@@ -86,9 +86,9 @@ The properties that \textit{BEB} offers and we have to verify are:
 
 \subsection{(N,N) Atomic Registry}
 
-All the possible executions must be \textit{linearizable}. The problem we had to solve is what will happen when more than one clients send a request(\textit{GET or PUT}) to the stored data at a node level as well as at a group replication level. The only registry out of the available ones(safe, regular, atomic), the one we chose was the only one able to provide linearization semantics. \par
+All the possible executions must be \textit{linearizable}. The problem we had to solve is what will happen when more than one clients send a request(\textit{GET or PUT}) to the stored data at a node level as well as at a group replication level. Out of the available registers(safe, regular, atomic), \textit{atomic} is the only one able to provide linearization semantics. \par
 
-The replica group contains a certain number of keys(configurable in our system) but the algorithm works for one register. Due to this, we modified it to work with the hash dictionary of keys and their values by piggybacking the contextual data key to all the messages. \par
+The replica group contains a certain number of keys(configurable in our system) but the algorithm works for one register. Due to this, we modified it to work with the hash dictionary of keys and their values by piggybacking the contextual data key to all the messages. The need of a failure detector in this algorithm is non existent so there is no use of our $\diamond$P here. \par
 
 Formally, a linearizable execution guarantees:
 \begin{itemize}
@@ -121,11 +121,13 @@ It is clear that each node cares about only its replication group and consequent
 
 Despite not implementing any kind of crash tolerance and node addition, we decided to write down the design choices that could have gone into a theoretical system if we had, much, more time. As a reminder, the nodes are connected with a fully networked mesh(\textit{group membership service}) and comprise a number of smaller replication groups each one responsible for a different key space. \par
 
-Starting from the base abstractions, \textit{pp2p} and \textit{beb} remain the same as they are here only to help us communicate although having the \textit{agreement} property in our broadcasting abstraction would be desirable. 
+Starting from the base abstractions, \textit{pp2p} and \textit{beb} remain the same as they are here only to help us communicate although having the \textit{agreement} property in our broadcasting abstraction would be desirable. Without \textit{agreement} we do not have any guarantees about the data consistency in the replicas making the use of \textit{Reliable broadcast} necessary. \par 
+Stepping up the complexity, to implement the \textit{CAS} we need atomic total order broadcast between the replication group since it comprises a two step atomic operation. With this requirement in mind the need for a consensus algorithm rises, namely \textit{Paxos}. \par
+Summing up this section, for a dynamic group we need a group membership service with view synchrony along with an eventual leader election algorithm. \par
 
 \section{System Simulations and Scenarios}
-Simulation and testing of the system is carried out at each component level, starting from base of \textit{Perfect Point to Point Link} upto \textit{(N,N) Atomic Registry} components.
-There are seprate Simulation Scenarious for each components,(see \textit{test/simulation} in source code bundle), that covers properties of underlying distribution abstraction.
+Simulation and testing of the system is carried out at each component level, starting from base of \textit{Perfect Point to Point Link} up to \textit{(N,N) Atomic Registry} components.
+There are separate Simulation Scenarios for each components,(see \textit{test/simulation} in source code bundle), that covers properties of underlying distribution abstraction.
 
 \subsection{Perfect Point to Point Link}
 
@@ -138,15 +140,15 @@ Also this can be even proven with the standard trasport-level protocol used in t
 
 \subsection{Best Effort Broadcast}
 
-The properties of \textit{Best Effort Broadcast} to be verfied are Validity, No Duplication and No Creation.
+The properties of \textit{Best Effort Broadcast} to be verified are Validity, No Duplication and No Creation.
 
-The Validy property of the component is simulated and verified in \textit{BebScenario.java}. Within \textit{beb/BebScenario.java}, it creates a constant number of (1000) of \textit{beb/BebPointHost.java} instances as the receivers and let another instance of \textit{beb/BebPointHost.java} to broadcast a message. \textit{BebSimulationObserver.java} simply verifies that all receviers are received with the broadcast message. No Duplication and No Creation properties are derived from the underlyine \textit{Perfect Point to Point Link} component.
+The Validity property of the component is simulated and verified in \textit{BebScenario.java}. Within \textit{beb/BebScenario.java}, it creates a constant number of (1000) of \textit{beb/BebPointHost.java} instances as the receivers and let another instance of \textit{beb/BebPointHost.java} to broadcast a message. \textit{BebSimulationObserver.java} simply verifies that all receivers are received with the broadcast message. No Duplication and No Creation properties are derived from the underlying \textit{Perfect Point to Point Link} component.
 
 \subsection{(N,N) Atomic Registry}
 
 As it is explained in section 3.3, the properties of \textit{(N,N) Atomic Registry (NNAR)} are Atomicity and Termination. \textit{NNAR} is a strict generalization of \textit{(1,N) Atomic Registry (ONAR)}, as the every execution of \textit{ONAR} is also an execution of \textit{NNAR}. Therefore, \textit{Ordering} property of \textit{ONAR} should be verified in \textit{NNAR} with a single writer.
 
-The simulation scenario in \textit{register/SimpleReadWriteScenario.java} simply verify the termincation of Read/Write operation. Also the simulation \textit{register/WriteAfterReadAllScenario.java} further verify after a write operation, eventually all Reader processors received the written value each registry node.
+The simulation scenario in \textit{register/SimpleReadWriteScenario.java} simply verify the termination of Read/Write operation. Also the simulation \textit{register/WriteAfterReadAllScenario.java} further verify after a write operation, eventually all Reader processors received the written value each registry node.
 
 The scenario \textit{register/TwoWritesLastReadScenario.java} covers the following execution.
 
@@ -154,25 +156,25 @@ The scenario \textit{register/TwoWritesLastReadScenario.java} covers the followi
 
 \textit{register/TwoWritesLastReadObserver.java} verifies that last read always return the last written value. That is, it prevents old value being read, which covers \textit{Ordering} property of \textit{ONAR}.
 
-The scenario \textit{register/LineariazableReadWriteScenario.java} covers the following execution. The lineriazability is captured in \textit{register/LineariazableReadWriteObserver.java} and verify the execution steps.
+The scenario \textit{register/LineariazableReadWriteScenario.java} covers the following execution. The linearizability is captured in \textit{register/LineariazableReadWriteObserver.java} and verify the execution steps.
 
 {\centering\includegraphics[scale = 0.5]{./images/mwriters_read.png}\par}
 
-The Scenario Observer \textit{register/LineariazableReadWriteObserver.java} simply list the execution steps that was captured in it, and we can assert it with given exectution steps.
+The Scenario Observer \textit{register/LineariazableReadWriteObserver.java} simply list the execution steps that was captured in it, and we can assert it with given execution steps.
 
-In \textit{Regular Register}, Reads with concurrent Writes should return last written value or value of the concurrent write. But when it comes to \textit{ONAR and NNAR}, it should also comply with any precede Read value. It is verifed in \textit{register/ConcurrentReadWriteScenario.java}, which follows the following executions.
+In \textit{Regular Register}, Reads with concurrent Writes should return last written value or value of the concurrent write. But when it comes to \textit{ONAR and NNAR}, it should also comply with any precede Read value. It is verified in \textit{register/ConcurrentReadWriteScenario.java}, which follows the following executions.
 
 {\centering\includegraphics[scale = 0.5]{./images/concurent_read_write.png}\par}
 
 {\centering\includegraphics[scale = 0.5]{./images/concurent_read_write2.png}\par}
 
 
-Failed writers in \textit{NNAR} should be appeared as it was never invoked or completed. It was verified in \textit{register/FailureWriterReadScenario.java}. The scond writer process was killed after triggering PUT request. In the simulation scenario \textit{register/FailureWriterReadObserver.java} aways found it as a completed Write in subsequent Readers.
+Failed writers in \textit{NNAR} should be appeared as it was never invoked or completed. It was verified in \textit{register/FailureWriterReadScenario.java}. The second writer process was killed after triggering PUT request. In the simulation scenario \textit{register/FailureWriterReadObserver.java} aways found it as a completed Write in subsequent Readers.
 
 
 {\centering\includegraphics[scale = 0.5]{./images/failed_writer.png}\par}
 
-\textit{NNAR} in this project, is improved to work with value of hash dictionary. It allow Read/Write on multiple key values simultenously, it should not block the Read or Write operation with differnt keys. This is verified in \textit{register/MultiKeyReadWriteScenario.java}, for similar executions as the following.
+\textit{NNAR} in this project, is improved to work with value of hash dictionary. It allow Read/Write on multiple key values simultaneously, it should not block the Read or Write operation with different keys. This is verified in \textit{register/MultiKeyReadWriteScenario.java}, for similar executions as the following.
 
 {\centering\includegraphics[scale = 0.5]{./images/mkey_writes.png}\par}
 
@@ -183,6 +185,26 @@ The open ended nature of the project was a blessing and a curse. The freedom we 
 
 After finding our bearings with \textit{Kompics} and figuring out its quirks development went smooth with the only headache being how to test and debug the system. Last thing before moving to the meat of the summary is how straightforward it was to implement an algorithm from the book on 1 to 1 translation. \par
 
-Developing a fully realized system, despite of it having a steep(for us) learning curve, taught us a myriad of things. 
+Developing a fully realized system, despite of it having a steep(for us) learning curve, taught us a ton of things. Building a static system with the a good degree of fault tolerance is quite straightforward. Things do not look so good when the switch to a dynamic group happens since exponentially more problems occur but in exchange you get much more useful system. \par
+
+\clearpage
+
+\begin{thebibliography}{9}
+	\bibitem{kompics} SICS Swedish ICT and KTH Royal Institute of Technology.  http://kompics.sics.se/. 2015
+	
+	\bibitem{lastyear} Previous year assignments. \textit{https://canvas.instructure.com/courses/990374}. 2015
+	
+	\bibitem{latexcompanion}  Abraham Silberschatz, Peter B. Galvin, Greg Gagne. \textit{Operating System Concepts 8th Edition}. Chapter 16 
+	
+	\bibitem{chordy} Johan Montelius. \textit{https://people.kth.se/\~johanmon/courses/id2201/seminars/chordy.pdf}.
+	
+	\bibitem{groupy} Johan Montelius. \textit{https://people.kth.se/\~johanmon/courses/id2201/seminars/groupy.pdf}.
+	
+	\bibitem{ftolkv} Álvaro Castro-Castilla. \textit{	http://blog.fourthbit.com/2015/04/12/building-a-distributed-fault-tolerant-key-value-store}
+	
+	\bibitem{paxos} Distributed systems, Advanced Course(ID2203), Lecture notes 2016. \textit{https://canvas.instructure.com/courses/990374/files}
+	
+\end{thebibliography}
+
 
 \end{document}
