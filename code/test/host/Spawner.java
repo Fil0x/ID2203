@@ -1,6 +1,6 @@
 package host;
 
-import host.register.ReadImposeWriteConsultMajorityHost;
+import kth.id2203.NodeHost;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Init;
 
@@ -24,8 +24,12 @@ public class Spawner extends ComponentDefinition {
 //			e.printStackTrace();
 //		}
          
-//		create(NodeHost.class, Init.NONE);
+		try {
+			create(NodeHost.class, new NodeHost.Init("127.0.0.1", 20000, 0));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
-		create(ReadImposeWriteConsultMajorityHost.class, Init.NONE);
+//		create(ReadImposeWriteConsultMajorityHost.class, Init.NONE);
 	}
 }

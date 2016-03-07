@@ -4,7 +4,6 @@ import java.util.List;
 
 import kth.id2203.beb.BroadcastComponent;
 import kth.id2203.beb.port.BroadcastPort;
-import kth.id2203.data.Grid;
 import kth.id2203.network.TAddress;
 import kth.id2203.pp2p.Pp2pLink;
 import kth.id2203.pp2p.port.Pp2pLinkPort;
@@ -13,14 +12,10 @@ import kth.id2203.register.port.AtomicRegister;
 import se.sics.kompics.Channel;
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
-import se.sics.kompics.Init;
 import se.sics.kompics.Positive;
 import se.sics.kompics.network.Network;
-import se.sics.kompics.network.netty.NettyInit;
-import se.sics.kompics.network.netty.NettyNetwork;
 import se.sics.kompics.timer.Timer;
 import se.sics.kompics.timer.java.JavaTimer;
-import simulation.beb.BebPointHost;
 
 public class RegistryHost extends ComponentDefinition {
 

@@ -4,6 +4,7 @@ import org.omg.CORBA.SystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import kth.id2203.event.Put;
 import kth.id2203.network.TAddress;
 import kth.id2203.network.TMessage;
 import se.sics.kompics.ComponentDefinition;
@@ -13,7 +14,6 @@ import se.sics.kompics.Start;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.Transport;
 import se.sics.kompics.timer.Timer;
-import simulation.register.event.Put;
 
 public class WriteClient extends ComponentDefinition {
 	

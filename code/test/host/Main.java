@@ -11,7 +11,6 @@ import kth.id2203.pp2p.event.P2PAckMessage;
 import kth.id2203.pp2p.event.P2PMessage;
 import kth.id2203.serializer.NetSerializer;
 import kth.id2203.serializer.PayloadSerializer;
-//import events.Join;
 import se.sics.kompics.Init;
 import se.sics.kompics.Kompics;
 import se.sics.kompics.network.netty.serialization.Serializers;
@@ -39,5 +38,29 @@ public class Main {
 
     public static void main(String[] args) {
         Kompics.createAndStart(Spawner.class, Init.NONE);
+    	
+//    	List<ReplicationGroup> groups = Grid.getReplicationGroups();
+//    	for(ReplicationGroup group : groups) {
+//    		System.out.println("id: " + group.getId());
+//    		System.out.println("lowerBound: " + group.getLowerBound());
+//    		System.out.println("upperBound: " + group.getUpperBound());
+//    		System.out.println("Members: ");
+//    		List<TAddress> members = group.getGroup();
+//    		for(TAddress member : members) {
+//    			System.out.println(member.getIp() + ":" + member.getPort());
+//    		}
+//    		
+//    	}
+    	
+//    	ReplicationGroup group = Grid.getReplicationGroups().get(0);
+//    	System.out.println("id: " + group.getId());
+//		System.out.println("lowerBound: " + group.getLowerBound());
+//		System.out.println("upperBound: " + group.getUpperBound());
+//		System.out.println("Members: ");
+//		List<TAddress> members = group.getGroup();
+//		for(TAddress member : members) {
+//			System.out.println(member.getIp() + ":" + member.getPort());
+//		}
+    	
     }
 }

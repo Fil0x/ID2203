@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import kth.id2203.event.Get;
+import kth.id2203.event.Put;
 import kth.id2203.network.TMessage;
 import kth.id2203.register.event.ArReadRequest;
 import kth.id2203.register.event.ArReadResponse;
@@ -18,8 +20,6 @@ import se.sics.kompics.Positive;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.simulator.util.GlobalView;
 import se.sics.kompics.timer.Timer;
-import simulation.register.event.Get;
-import simulation.register.event.Put;
 
 public class RegistryApp extends ComponentDefinition {
 

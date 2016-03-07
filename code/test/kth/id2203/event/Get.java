@@ -1,4 +1,4 @@
-package simulation.register.event;
+package kth.id2203.event;
 
 import se.sics.kompics.KompicsEvent;
 

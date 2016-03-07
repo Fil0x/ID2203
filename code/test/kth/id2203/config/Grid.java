@@ -1,10 +1,12 @@
-package kth.id2203.data;
+package kth.id2203.config;
 
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import kth.id2203.network.TAddress;
 import util.Hasher;
@@ -55,17 +57,48 @@ public class Grid {
     }
 
     public static List<ReplicationGroup> getReplicationGroups() {
-        List<TAddress> allNodes = getAllNodes();
-        List<ReplicationGroup> group = new ArrayList<>();
+//        List<TAddress> allNodes = getAllNodes();
+//        List<ReplicationGroup> group = new ArrayList<>();
+//
+//        int nodesLeft = NODESCOUNT, temp = 0, previousBound = 0, previousIndex = 0, loop = nodesLeft / DELTA;
+//        for (int i = 0; i < loop; i++) {
+//            temp = nodesLeft - DELTA;
+//            ReplicationGroup r = new ReplicationGroup(i, previousBound, previousBound + KEYSPERGROUP);
+//            if(temp < DELTA) {
+//                for (int j = 0; j < nodesLeft; j++)
+//                    r.addToGroup(allNodes.get(previousIndex + j));
+//                group.add(r);
+//                break;
+//            }
+//            else {
+//                for (int j = 0; j < DELTA; j++)
+//                    r.addToGroup(allNodes.get(previousIndex + j));
+//                previousBound += KEYSPERGROUP;
+//                previousIndex += DELTA;
+//                nodesLeft -= DELTA;
+//                group.add(r);
+//            }
+//        }
+
+        return new ArrayList(loadReplicationGroups().values());
+    }
+    
+    public static ReplicationGroup getReplicationGroup(int id) {
+    	return loadReplicationGroups().get(id);
+    }
+    
+    private static Map<Integer, ReplicationGroup> loadReplicationGroups() {
+    	List<TAddress> allNodes = getAllNodes();
+        Map<Integer, ReplicationGroup> group = new HashMap<>();
 
         int nodesLeft = NODESCOUNT, temp = 0, previousBound = 0, previousIndex = 0, loop = nodesLeft / DELTA;
         for (int i = 0; i < loop; i++) {
             temp = nodesLeft - DELTA;
-            ReplicationGroup r = new ReplicationGroup(previousBound, previousBound + KEYSPERGROUP);
+            ReplicationGroup r = new ReplicationGroup(i, previousBound, previousBound + KEYSPERGROUP);
             if(temp < DELTA) {
                 for (int j = 0; j < nodesLeft; j++)
                     r.addToGroup(allNodes.get(previousIndex + j));
-                group.add(r);
+                group.put(i, r);
                 break;
             }
             else {
@@ -74,11 +107,12 @@ public class Grid {
                 previousBound += KEYSPERGROUP;
                 previousIndex += DELTA;
                 nodesLeft -= DELTA;
-                group.add(r);
+                group.put(i, r);
             }
         }
-
+        
         return group;
+
     }
 
     public static ReplicationGroup getReplicaGroupByAddress(TAddress addr) {
