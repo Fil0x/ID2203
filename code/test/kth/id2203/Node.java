@@ -3,77 +3,98 @@ package kth.id2203;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import kth.id2203.beb.event.BEBDeliver;
-import kth.id2203.beb.event.BEBroadcast;
-import kth.id2203.beb.port.BroadcastPort;
-import kth.id2203.message.MessagePayload;
+import kth.id2203.epfd.event.Restore;
+import kth.id2203.epfd.event.Suspect;
+import kth.id2203.epfd.port.EventuallyPerfectFailureDetector;
+import kth.id2203.event.Get;
+import kth.id2203.event.Put;
 import kth.id2203.network.TAddress;
-import kth.id2203.pp2p.event.P2PAckDeliver;
-import kth.id2203.pp2p.event.P2PAckSend;
-import kth.id2203.pp2p.port.Pp2pLinkPort;
+import kth.id2203.network.TMessage;
+import kth.id2203.register.event.ArReadRequest;
+import kth.id2203.register.event.ArReadResponse;
+import kth.id2203.register.event.ArWriteRequest;
+import kth.id2203.register.event.ArWriteResponse;
+import kth.id2203.register.port.AtomicRegister;
+import se.sics.kompics.ClassMatchedHandler;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Positive;
-import se.sics.kompics.Start;
+import se.sics.kompics.network.Network;
 
 public class Node extends ComponentDefinition {
 	
-	private static final Logger LOG = LoggerFactory.getLogger(Node.class);
+	private static final Logger log = LoggerFactory.getLogger(Node.class);
 	
-	private Positive<BroadcastPort> broadcastPort = requires(BroadcastPort.class);
-	private Positive<Pp2pLinkPort> p2pLinkPort = requires(Pp2pLinkPort.class);
+	private Positive<Network> network = requires(Network.class);
+	
+	private Positive<AtomicRegister> nnar = requires(AtomicRegister.class);
 		
+	private Positive<EventuallyPerfectFailureDetector> epfd = requires(EventuallyPerfectFailureDetector.class);
+	
 	private TAddress self;
 	
-	private boolean isLeader;
-	
 	public Node(Init init) {
-		LOG.info("Initialize node with self address: " + init.self.getIp() + ":" + init.self.getPort());
+		log.info("Initialize node with self address: " + init.self.getIp() + ":" + init.self.getPort());
         this.self = init.self;
-        this.isLeader = init.isLeader;
     }
 	
-	Handler<Start> startHandler = new Handler<Start>() {
-		public void handle(Start event) {
-			if (isLeader) {
-				LOG.info("Triger Test Broadcast message from : " + self.getIp() + ":" + self.getPort());
-				trigger(new BEBroadcast(new MessagePayload("TEST Message")), broadcastPort);
-			}
-		}
-	};
+	ClassMatchedHandler<Put, TMessage> putHandler = new ClassMatchedHandler<Put, TMessage>() {
+
+        @Override
+        public void handle(Put event, TMessage context) {
+        	log.info("Receive Put request [key: " + event.getKey() + ", value:" + event.getValue() + "]");
+        	trigger(new ArWriteRequest(event.getKey(), event.getValue()), nnar);
+        }
+    };
+
+    ClassMatchedHandler<Get, TMessage> getHandler = new ClassMatchedHandler<Get, TMessage>() {
+
+        @Override
+        public void handle(Get event, TMessage context) {
+        	log.info("Receive Get request [key: " + event.getKey() + "]");
+        	trigger(new ArReadRequest(event.getKey()), nnar);
+        }
+    };
 	
-	Handler<BEBDeliver> bebDeliverHandler = new Handler<BEBDeliver>() {
-		public void handle(BEBDeliver event) {
-			LOG.info("Got a Deliver Event at:" + self.getIp() + ":" + self.getPort() + " and sent ACK to: " + event.getFrom().getIp() + ":" + event.getFrom().getPort());
-			if(event.getFrom().getPort() != self.getPort()) {
-				trigger(new P2PAckSend(event.getFrom(), new MessagePayload("ACK")), p2pLinkPort);	
-			}
-		}
-	};
+    Handler<ArReadResponse> readResponseHanlder = new Handler<ArReadResponse>() {
+    	public void handle(ArReadResponse event) {
+    		log.info("Got Read Value " + event.getValue());
+    	}
+    };
+    
+    Handler<ArWriteResponse> writeResponseHanlder = new Handler<ArWriteResponse>() {
+    	public void handle(ArWriteResponse event) {
+    		log.info("Got Write Response ");
+    	}
+    };
+    
+    Handler<Suspect> suspectHandler = new Handler<Suspect>() {
+        @Override
+        public void handle(Suspect suspect) {
+            log.info("Process suspected :" + suspect.getSource());
+        }
+    };
 
-	private Handler<P2PAckDeliver> handleP2PAckMessage = new Handler<P2PAckDeliver>() {
-
-		@Override
-		public void handle(P2PAckDeliver event) {
-			LOG.info("Got Ack from " + event.getFrom().getIp() + ":" + event.getFrom().getPort());
-
-		}
-
-	};
-	
-	
-	{
-		subscribe(startHandler, control);
-		subscribe(bebDeliverHandler, broadcastPort);
-		subscribe(handleP2PAckMessage, p2pLinkPort);
+    Handler<Restore> restoreHandler = new Handler<Restore>() {
+        @Override
+        public void handle(Restore restore) {
+            log.info("Process restored :" + restore.getSource());
+        }
+    };
+    
+    {
+		subscribe(readResponseHanlder, nnar);
+		subscribe(writeResponseHanlder, nnar);
+		subscribe(putHandler, network);
+		subscribe(getHandler, network);
+		subscribe(suspectHandler, epfd);
+        subscribe(restoreHandler, epfd);
 	}
-	
+    
 	public static class Init extends se.sics.kompics.Init<Node> {
         public final TAddress self;
-        public final boolean isLeader;
-        public Init(TAddress self, boolean isLeader) {
+        public Init(TAddress self) {
             this.self = self;
-            this.isLeader = isLeader;
         }
     }
 }
