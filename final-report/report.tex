@@ -33,6 +33,8 @@ The following figure depicts the overall design of the system.
 
 {\centering\includegraphics[scale = 0.5]{./images/design_overview.png}\par}
 
+Node is the primary Distrbuted component in the system. It intercepts PUT, GET requests over Network component and directs them over (N,N) Atomic Registry subcomponent. \textit{Node Host} component is responsible for the initiation of Node instance according to deployment properties (Node ip/port, Group membership id etc.) given in node configurations file.
+
 \subsection{Node Topology}
 
 {\centering\includegraphics[scale = 0.6]{./images/node_setup.png}\par}
@@ -180,6 +182,10 @@ Failed writers in \textit{NNAR} should be appeared as it was never invoked or co
 \textit{NNAR} in this project, is improved to work with value of hash dictionary. It allow Read/Write on multiple key values simultaneously, it should not block the Read or Write operation with different keys. This is verified in \textit{register/MultiKeyReadWriteScenario.java}, for similar executions as the following.
 
 {\centering\includegraphics[scale = 0.5]{./images/mkey_writes.png}\par}
+
+\subsection{Node}
+
+Node compromises it's distributed system properties of its subcomponents. Node topology and its main events, GET/PUT are verfied in the scenario \textit{NodeStructureScenario.java} also with a set of hosted nodes and a client component. Static setup of Nodes for testing is hanlded within \textit{config.Grid.java and config.ReplicationGroup.java}. 
 
 
 \section{Conclusions}
