@@ -36,7 +36,7 @@ public class ReadClient extends ComponentDefinition {
 	Handler<Start> startHandler = new Handler<Start>(){
 		public void handle(Start event) {
 			log.info("Issue GET on " + dest.getIp() + ":" + dest.getPort());
-			trigger(new TMessage(self, dest, Transport.TCP, new Get(dataKey)), network);
+			trigger(new TMessage(self, dest, Transport.TCP, new Get(dataKey, self.getIp() + ":" + self.getPort())), network);
 		}
 	};
 	

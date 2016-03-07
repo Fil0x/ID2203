@@ -1,5 +1,7 @@
 package simulation.register;
 
+import java.util.ArrayList;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,12 +31,19 @@ public class RegistryApp extends ComponentDefinition {
 	Positive<Timer> timer = requires(Timer.class);
 	
 	private String previousReadValue;
-	
+	private String processId;
 	ClassMatchedHandler<Put, TMessage> putHandler = new ClassMatchedHandler<Put, TMessage>() {
 
         @Override
         public void handle(Put event, TMessage context) {
         	log.info("Receive Put request [key: " + event.getKey() + ", value:" + event.getValue() + "]");
+        	processId = event.getProcessId();
+        	
+        	GlobalView gv = config().getValue("simulation.globalview", GlobalView.class);
+        	String simulationType = gv.getValue("simulation.register.type", String.class);
+	        if(simulationType.equals("LINEARIAZABLE")) {
+	        	gv.getValue("simulation.register.execution_steps", ArrayList.class).add("Write Request [key: "+ event.getKey() + ", value:" + event.getValue() + "] at " + event.getProcessId());
+			}
         	trigger(new ArWriteRequest(event.getKey(), event.getValue()), nnar);
         }
     };
@@ -44,6 +53,15 @@ public class RegistryApp extends ComponentDefinition {
         @Override
         public void handle(Get event, TMessage context) {
         	log.info("Receive Get request [key: " + event.getKey() + "]");
+        	
+        	processId = event.getProcessId();
+        	
+        	GlobalView gv = config().getValue("simulation.globalview", GlobalView.class);
+        	String simulationType = gv.getValue("simulation.register.type", String.class);
+	        if(simulationType.equals("LINEARIAZABLE")) {
+	        	gv.getValue("simulation.register.execution_steps", ArrayList.class).add("Read Request [key: "+ event.getKey() + "] at " + event.getProcessId());
+			}
+	        
         	trigger(new ArReadRequest(event.getKey()), nnar);
         }
     };
@@ -76,7 +94,12 @@ public class RegistryApp extends ComponentDefinition {
 				if(previousReadValue == null) {
 					previousReadValue = event.getValue();
 				}
+			} else if(simulationType.equals("LINEARIAZABLE")) {
+				if(simulationType.equals("LINEARIAZABLE")) {
+					gv.getValue("simulation.register.execution_steps", ArrayList.class).add("Read Response [ value:" + event.getValue() + "] at " + processId);	
+				}
 			}
+				
   
 		}
 		
@@ -89,6 +112,12 @@ public class RegistryApp extends ComponentDefinition {
 			log.info("Got Write Response ");
 			GlobalView gv = config().getValue("simulation.globalview", GlobalView.class);
 	        gv.setValue("simulation.register.write_response_received", true);
+	        
+	        String simulationType = gv.getValue("simulation.register.type", String.class);
+	        if(simulationType.equals("LINEARIAZABLE")) {
+	        	gv.getValue("simulation.register.execution_steps", ArrayList.class).add("Write Response at " + processId);
+				
+			}
 		}
 		
 	};

@@ -1,5 +1,6 @@
 package simulation.register;
 
+import org.omg.CORBA.SystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,18 +28,25 @@ public class WriteClient extends ComponentDefinition {
 	private final Integer dataKey;
 	private final String dataValue;
 	
+	private final boolean faileAfter;
+	
 	public WriteClient(Init init) {
 		log.info("Initiate Write Client");
 		this.self = init.self;
 		this.dest = init.dest;
 		this.dataKey = init.dataKey;
 		this.dataValue = init.dataValue;
+		this.faileAfter = init.faileAfter;
 	}
 	
 	Handler<Start> startHandler = new Handler<Start>(){
 		public void handle(Start event) {
 			log.info("Issue PUT on " + dest.getIp() + ":" + dest.getPort());
-			trigger(new TMessage(self, dest, Transport.TCP, new Put(dataKey, dataValue)), network);
+			trigger(new TMessage(self, dest, Transport.TCP, new Put(self.getIp() + ":" + self.getPort(), dataKey, dataValue)), network);
+			if(faileAfter) {
+				log.info("Kill the Write Clinet " +  self.getIp() + ":" + self.getPort());
+				Thread.currentThread().interrupt();
+			}
 		}
 	};
 	
@@ -51,12 +59,22 @@ public class WriteClient extends ComponentDefinition {
 		public final TAddress dest;
 		public final Integer dataKey;
 		public final String dataValue;
+		public final boolean faileAfter;
 		
 		public Init(TAddress self, TAddress dest, Integer dataKey, String dataValue) {
 			this.self = self;
 			this.dest = dest;
 			this.dataKey = dataKey;
 			this.dataValue = dataValue;
+			this.faileAfter = false;
+		}
+		
+		public Init(TAddress self, TAddress dest, Integer dataKey, String dataValue, boolean faileAfter) {
+			this.self = self;
+			this.dest = dest;
+			this.dataKey = dataKey;
+			this.dataValue = dataValue;
+			this.faileAfter = faileAfter;
 		}
 	}
 }
