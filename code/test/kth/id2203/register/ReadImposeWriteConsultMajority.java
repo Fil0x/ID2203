@@ -111,7 +111,7 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 
 //			rid++;
 			if(rid.containsKey(event.getKey())) {
-				rid.put(event.getKey(), (rid.get(event.getKey() + 1)));
+				rid.put(event.getKey(), (rid.get(event.getKey()) + 1));
 			} else {
 				rid.put(event.getKey(), 1);
 			}
@@ -156,20 +156,20 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 		 * @param readRequest
 		 */
 		private void handleRead(TAddress src, String readRequest) {
-			log.info("R3/W3: Handle Broadcast READ Request [" + readRequest + "] at " + self.getIp() + self.getPort());
+			log.info("R3/W3: Handle Broadcast READ Request [" + readRequest + "] at " + self.getIp() + ":" + self.getPort());
 			String[] request = readRequest.split(",");
 			String r = request[1];
 			Integer key = Integer.valueOf(request[2]);
 			
-			Data keyFlag;
+			Data data;
 			if(keyData.containsKey(key)) {
-				keyFlag = keyData.get(key);
+				data = keyData.get(key);
 			} else {
-				keyFlag = new Data(0, 0, null);
-				keyData.put(key, keyFlag);
+				data = new Data(0, 0, null);
+				keyData.put(key, data);
 			}
 			
-			MessagePayload message = new MessagePayload(READ_ACK + "," + r + "," + keyFlag.getTs() + "," + keyFlag.getWr() + "," + key + "," + keyFlag.getVal());
+			MessagePayload message = new MessagePayload(READ_ACK + "," + r + "," + data.getTs() + "," + data.getWr() + "," + key + "," + data.getVal());
 			log.info("R4/W4: Send Ack [" + message.getPayload() + "] from " + self.getIp() + self.getPort());
 			trigger(new P2PAckSend(src, message), pp2p);
 			
@@ -249,6 +249,7 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 				} else {
 					rl = new ArrayList<ReadInfo>();	
 				}
+				
 				rl.add(new ReadInfo(ts1, wr1, k1, v1, src.hashCode()));
 				
 				if (rl.size() > (numNodes / 2)) {
@@ -265,6 +266,7 @@ public class ReadImposeWriteConsultMajority extends ComponentDefinition {
 					});
 					
 					ReadInfo highest = rl.get(rl.size() - 1);
+					
 					rr.put(k1, new Integer(highest.getWr()));
 	                readval.put(k1, new Val(highest.getKey(), highest.getVal()));
 	                maxts.put(k1, new Integer(highest.getTs()));
