@@ -1,19 +1,20 @@
 package client.components;
 
 
-import network.TAddress;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pp2p.component.Pp2pLink;
-import pp2p.port.PerfectPointToPointLink;
+
+import kth.id2203.network.TAddress;
+import kth.id2203.pp2p.Pp2pLink;
+import kth.id2203.pp2p.port.Pp2pLinkPort;
 import se.sics.kompics.Channel;
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.netty.NettyInit;
 import se.sics.kompics.network.netty.NettyNetwork;
-
-import java.util.List;
 
 public class ClientHost extends ComponentDefinition {
 
@@ -22,10 +23,10 @@ public class ClientHost extends ComponentDefinition {
     public ClientHost(Init init) {
         Client.Init clInit = new Client.Init(init.getSelf(), init.getAllNodes(), (byte) 2, 30, 10);
         Component client = create(Client.class, clInit);
-        Component pp2p = create(Pp2pLink.class, new Pp2pLink.Init(init.getSelf(), init.getAllNodes()));
+        Component pp2p = create(Pp2pLink.class, new Pp2pLink.Init(init.getSelf()));
         Component network = create(NettyNetwork.class, new NettyInit(init.self));
 
-        connect(client.getNegative(PerfectPointToPointLink.class), pp2p.getPositive(PerfectPointToPointLink.class), Channel.TWO_WAY);
+        connect(client.getNegative(Pp2pLinkPort.class), pp2p.getPositive(Pp2pLinkPort.class), Channel.TWO_WAY);
         connect(pp2p.getNegative(Network.class), network.getPositive(Network.class), Channel.TWO_WAY);
     }
 

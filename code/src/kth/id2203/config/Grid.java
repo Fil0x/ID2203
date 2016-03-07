@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 import kth.id2203.network.TAddress;
-import util.Hasher;
+import kth.id2203.util.Hasher;
+
 
 public class Grid {
 

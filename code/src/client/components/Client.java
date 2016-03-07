@@ -1,21 +1,21 @@
 package client.components;
 
 
-import client.events.GetRequest;
-import client.events.PutRequest;
-import network.TAddress;
+import java.util.List;
+import java.util.Random;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pp2p.event.Pp2pMessage;
-import pp2p.event.Pp2pSend;
-import pp2p.port.PerfectPointToPointLink;
+
+import client.events.GetRequest;
+import client.events.PutRequest;
+import kth.id2203.network.TAddress;
+import kth.id2203.pp2p.event.P2PSend;
+import kth.id2203.pp2p.port.Pp2pLinkPort;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Positive;
 import se.sics.kompics.Start;
-
-import java.util.List;
-import java.util.Random;
 
 public class Client extends ComponentDefinition {
 
@@ -23,7 +23,7 @@ public class Client extends ComponentDefinition {
     private static byte GET = 1;
     private static byte PUT = 2;
 
-    private Positive<PerfectPointToPointLink> pp2p = requires(PerfectPointToPointLink.class);
+    private Positive<Pp2pLinkPort> pp2p = requires(Pp2pLinkPort.class);
     private Integer key, value;
     private byte type;
     private TAddress self;
@@ -50,11 +50,13 @@ public class Client extends ComponentDefinition {
                 e.printStackTrace();
             }
             if(type == GET)
-                trigger(new Pp2pSend(dest, new GetRequest(self, key)), pp2p);
+//                trigger(new P2PSend(dest, new GetRequest(self, key)), pp2p);
+            	trigger(new P2PSend(dest, null), pp2p);
             else if(type == PUT) {
                 LOG.info("------------------------");
                 LOG.info(String.format("Sending PUT(%d, %d) to: %s", key, value, dest.toString()));
-                trigger(new Pp2pSend(dest, new PutRequest(self, key, value)), pp2p);
+//                trigger(new P2PSend(dest, new PutRequest(self, key, value)), pp2p);
+                trigger(new P2PSend(dest, null), pp2p);
             }
         }
     };

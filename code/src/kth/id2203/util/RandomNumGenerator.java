@@ -1,4 +1,4 @@
-package util;
+package kth.id2203.util;
 
 import java.util.Random;
 

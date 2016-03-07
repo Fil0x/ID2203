@@ -2,18 +2,18 @@ package simulation;
 
 import java.util.List;
 
-import components.Node;
-import network.TAddress;
+import kth.id2203.Node;
+import kth.id2203.config.Grid;
+import kth.id2203.network.TAddress;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Init;
 import se.sics.kompics.network.Address;
 import se.sics.kompics.simulator.SimulationScenario;
 import se.sics.kompics.simulator.adaptor.Operation;
 import se.sics.kompics.simulator.adaptor.Operation1;
-import se.sics.kompics.simulator.adaptor.distributions.ConstantDistribution;
 import se.sics.kompics.simulator.adaptor.distributions.extra.BasicIntSequentialDistribution;
 import se.sics.kompics.simulator.events.system.StartNodeEvent;
-import staticdata.Grid;
+
 
 public class NodeStructureScenario {
 
@@ -38,7 +38,7 @@ public class NodeStructureScenario {
 
                 @Override
                 public Init getComponentInit() {
-                    return new Node.Init(selfAdr, allNodes, false, allNodes.get(0));
+                    return new Node.Init(selfAdr);
                 }
             };
         }
@@ -60,7 +60,7 @@ public class NodeStructureScenario {
 
 				@Override
 				public Init getComponentInit() {
-                    return new Node.Init(selfAdr, allNodes, true, null);
+                    return new Node.Init(selfAdr);
 				}
 
 				@Override

@@ -1,13 +1,13 @@
 package client.events;
 
 
-import network.TAddress;
-import pp2p.event.Pp2pDeliver;
-import se.sics.kompics.KompicsEvent;
-import staticdata.Grid;
+
+import kth.id2203.config.Grid;
+import kth.id2203.network.TAddress;
+import kth.id2203.pp2p.event.P2PDeliver;
 
 
-public class GetReply extends Pp2pDeliver {
+public class GetReply extends P2PDeliver {
     private static final long serialVersionUID = -4817090990532012025L;
     private int key, value;
     private byte type;

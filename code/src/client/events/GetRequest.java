@@ -1,12 +1,11 @@
 package client.events;
 
-import network.TAddress;
-import pp2p.event.Pp2pDeliver;
-import se.sics.kompics.KompicsEvent;
-import staticdata.Grid;
+import kth.id2203.config.Grid;
+import kth.id2203.network.TAddress;
+import kth.id2203.pp2p.event.P2PDeliver;
 
 
-public class GetRequest extends Pp2pDeliver {
+public class GetRequest extends P2PDeliver {
     private static final long serialVersionUID = 8335028469218096522L;
     // GetRequest(key): send a request to retrieve a value based on a key
     private int key;
@@ -23,7 +22,6 @@ public class GetRequest extends Pp2pDeliver {
         return key;
     }
 
-    @Override
     public byte getType() {
         return type;
     }

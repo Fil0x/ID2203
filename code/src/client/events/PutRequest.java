@@ -1,12 +1,11 @@
 package client.events;
 
 
-import network.TAddress;
-import pp2p.event.Pp2pDeliver;
-import se.sics.kompics.KompicsEvent;
-import staticdata.Grid;
+import kth.id2203.config.Grid;
+import kth.id2203.network.TAddress;
+import kth.id2203.pp2p.event.P2PDeliver;
 
-public class PutRequest extends Pp2pDeliver {
+public class PutRequest extends P2PDeliver {
     private static final long serialVersionUID = 7429988893396340783L;
     // PutRequest(key, value): contains the key and the value to be stored
     private int key, value;
@@ -28,7 +27,7 @@ public class PutRequest extends Pp2pDeliver {
         return value;
     }
 
-    @Override
+
     public byte getType() {
         return type;
     }
