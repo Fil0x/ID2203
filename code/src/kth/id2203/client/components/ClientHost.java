@@ -1,4 +1,4 @@
-package client.components;
+package kth.id2203.client.components;
 
 
 import java.util.List;

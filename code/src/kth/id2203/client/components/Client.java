@@ -1,4 +1,4 @@
-package client.components;
+package kth.id2203.client.components;
 
 
 import java.util.List;
@@ -7,8 +7,8 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import client.events.GetRequest;
-import client.events.PutRequest;
+import kth.id2203.client.events.GetRequest;
+import kth.id2203.client.events.PutRequest;
 import kth.id2203.network.TAddress;
 import kth.id2203.pp2p.event.P2PSend;
 import kth.id2203.pp2p.port.Pp2pLinkPort;

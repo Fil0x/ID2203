@@ -1,4 +1,4 @@
-package client.events;
+package kth.id2203.client.events;
 
 
 import kth.id2203.config.Grid;
