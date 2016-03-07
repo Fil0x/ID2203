@@ -142,8 +142,6 @@ The properties of \textit{Best Effort Broadcast} to be verfied are Validity, No 
 
 The Validy property of the component is simulated and verified in \textit{BebScenario.java}. Within \textit{beb/BebScenario.java}, it creates a constant number of (1000) of \textit{beb/BebPointHost.java} instances as the receivers and let another instance of \textit{beb/BebPointHost.java} to broadcast a message. \textit{BebSimulationObserver.java} simply verifies that all receviers are received with the broadcast message. No Duplication and No Creation properties are derived from the underlyine \textit{Perfect Point to Point Link} component.
 
-\textit{Best Effort Broadcast} ensures only delivery of messages amoung correct processes. The simulation [TODO] verifiy this.
-
 \subsection{(N,N) Atomic Registry}
 
 As it is explained in section 3.3, the properties of \textit{(N,N) Atomic Registry (NNAR)} are Atomicity and Termination. \textit{NNAR} is a strict generalization of \textit{(1,N) Atomic Registry (ONAR)}, as the every execution of \textit{ONAR} is also an execution of \textit{NNAR}. Therefore, \textit{Ordering} property of \textit{ONAR} should be verified in \textit{NNAR} with a single writer.
@@ -156,22 +154,25 @@ The scenario \textit{register/TwoWritesLastReadScenario.java} covers the followi
 
 \textit{register/TwoWritesLastReadObserver.java} verifies that last read always return the last written value. That is, it prevents old value being read, which covers \textit{Ordering} property of \textit{ONAR}.
 
-The scenario (TODO) covers the following execution. The lineriazability is captured in (TODO) Observer and verify the execution.
+The scenario \textit{register/LineariazableReadWriteScenario.java} covers the following execution. The lineriazability is captured in \textit{register/LineariazableReadWriteObserver.java} and verify the execution steps.
 
 {\centering\includegraphics[scale = 0.5]{./images/mwriters_read.png}\par}
 
+The Scenario Observer \textit{register/LineariazableReadWriteObserver.java} simply list the execution steps that was captured in it, and we can assert it with given exectution steps.
 
-(TODO, concurrent write/read, should return last write, but follows the last read value)
+In \textit{Regular Register}, Reads with concurrent Writes should return last written value or value of the concurrent write. But when it comes to \textit{ONAR and NNAR}, it should also comply with any precede Read value. It is verifed in \textit{register/ConcurrentReadWriteScenario.java}, which follows the following executions.
 
 {\centering\includegraphics[scale = 0.5]{./images/concurent_read_write.png}\par}
 
 {\centering\includegraphics[scale = 0.5]{./images/concurent_read_write2.png}\par}
 
 
-(TODO, Failed writers appear as never invoked or completed)
+Failed writers in \textit{NNAR} should be appeared as it was never invoked or completed. It was verified in \textit{register/FailureWriterReadScenario.java}. The scond writer process was killed after triggering PUT request. In the simulation scenario \textit{register/FailureWriterReadObserver.java} aways found it as a completed Write in subsequent Readers.
+
+
 {\centering\includegraphics[scale = 0.5]{./images/failed_writer.png}\par}
 
-Our NNAR is improved to work with value of hash dictionary. Therefore, it should allow Read/Write on multiple key values simultenously, it should not block the Read or Write operation with low rid.
+\textit{NNAR} in this project, is improved to work with value of hash dictionary. It allow Read/Write on multiple key values simultenously, it should not block the Read or Write operation with differnt keys. This is verified in \textit{register/MultiKeyReadWriteScenario.java}, for similar executions as the following.
 
 {\centering\includegraphics[scale = 0.5]{./images/mkey_writes.png}\par}
 
